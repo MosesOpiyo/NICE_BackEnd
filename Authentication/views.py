@@ -85,11 +85,15 @@ def warehouser_registration_view(request):
 def get_profile(request):
 
     data = {}
-    try:
-        profile = Profile.objects.select_related('user').get(user=request.user)
-        data =  ProfileSerializer(profile).data
-        return Response(data,status = status.HTTP_200_OK)
-    except:
-        new_profile = Profile.objects.create(user=request.user)
-        data =  ProfileSerializer(new_profile).data
-        return Response(data,status = status.HTTP_200_OK)
+    if request.user:
+        try:
+            profile = Profile.objects.select_related('user').get(user=request.user)
+            data =  ProfileSerializer(profile).data
+            return Response(data,status = status.HTTP_200_OK)
+        except:
+            new_profile = Profile.objects.create(user=request.user)
+            data =  ProfileSerializer(new_profile).data
+            return Response(data,status = status.HTTP_200_OK)
+        
+    else:
+        return Response(data,status = status.HTTP_404_NOT_FOUND)

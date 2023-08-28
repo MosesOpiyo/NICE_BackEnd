@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Warehouse
-from Farmer.models import CoffeeProducts
+from Farming.models import CoffeeProducts
 from .serializers import WarehouseSerializers,GetWarehouseSerializers,GetWarehouseProductsSerializers
-from Farmer.serializers import ProductsSerializers
+from Farming.serializers import ProductsSerializers
 
 class WarehouseClass:
     @api_view(["POST"])

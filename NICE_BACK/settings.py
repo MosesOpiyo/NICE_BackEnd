@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-3&6b_c!o0n=cq298#zge2m7n18ep^5i2#8+q*eg*!b=fcrc&zh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.137.119']
+ALLOWED_HOSTS = ['192.168.43.147']
 
 
 # Application definition
@@ -42,8 +42,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'Authentication',
     'Depending_Accounts',
-    'Farmer',
-    'Warehouser'
+    'Farming',
+    'Warehouser',
+    'Orders'
 ]
 
 MIDDLEWARE = [
