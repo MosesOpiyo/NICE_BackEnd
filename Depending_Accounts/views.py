@@ -3,14 +3,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from .serializers import DependingSerializers
+from .serializers import PendingSerializers
 
 # Create your views here.
-class Depending:
+class Pending:
     @api_view(['POST'])
     def farmer_registration_view(request):
     
-        serializer = DependingSerializers(data=request.data)
+        serializer = PendingSerializers(data=request.data)
         data = {}
         if request.user:
             if serializer.is_valid():
@@ -24,3 +24,4 @@ class Depending:
         else:
             data['response'] = f"No admin for new user"
             return Response(data,status = status.HTTP_400_BAD_REQUEST) 
+        

@@ -4,6 +4,7 @@ from .models import *
 admin.site.register(Admin)
 admin.site.register(Farmer)
 admin.site.register(Warehouser)
+admin.site.register(OriginWarehouser)
 admin.site.register(Buyer)
 admin.site.register(Profile)
 admin.site.register(Account)

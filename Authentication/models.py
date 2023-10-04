@@ -1,11 +1,11 @@
-import binascii
-import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.utils.translation import gettext_lazy as _
 from rest_framework.authtoken.models import Token
+from cloudinary.models import CloudinaryField
+from decouple import config
 
 class MyAccountManager(BaseUserManager):
     def create_user(self,email,username,password=None):
@@ -35,23 +35,22 @@ class MyAccountManager(BaseUserManager):
         user.is_staff = True
 
         user.save(using=self._db)
+        user.type = Account.Type.ADMIN
         return user
 
 class Account(AbstractBaseUser,PermissionsMixin):
     class Type(models.TextChoices):
         ADMIN = "ADMIN","Admin"
         FARMER = "FARMER","Farmer"
+        ORIGINWAREHOUSER = "ORIGINWAREHOUSER","OriginWarehouser"
         WAREHOUSER = "WAREHOUSER","Warehouser"
         BUYER = "BUYER","Buyer"
-
+    index = models.CharField(max_length=10,default="")
     type = models.CharField(_("Type"),max_length=100,choices=Type.choices,default=Type.BUYER)
     email = models.EmailField(verbose_name="email",max_length=100,unique=True,null=True)
     username = models.CharField(max_length=30,unique=True)
     date_joined = models.DateTimeField(verbose_name="date joined",auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="last login",auto_now=True)
-    is_farmer = models.BooleanField(default=False)
-    is_warehouser = models.BooleanField(default=False)
-    is_buyer = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -132,6 +131,35 @@ class Farmer(Account):
         self.type = Account.Type.FARMER
         return super().save(*args , **kwargs)
     
+class OriginWarehouserManager(models.Manager):
+    def create_user(self,email,username,password=None):
+        if not email:
+            raise ValueError("Users must have and email address")
+        if not username:
+            raise ValueError("Users must have a username")
+        
+        user = self.model(
+            email = self.normalize_email(email),
+            username = username,
+            password = password
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+      
+    def get_queryset(self , *args,  **kwargs):
+        queryset = super().get_queryset(*args , **kwargs)
+        queryset = queryset.filter(type = Account.Type.WAREHOUSER)
+        return queryset
+
+class OriginWarehouser(Account):
+    proxy=True
+    objects = OriginWarehouserManager()
+
+    def save(self , *args , **kwargs):
+        self.type = Account.Type.WAREHOUSER
+        return super().save(*args , **kwargs)
+    
 class WarehouserManager(models.Manager):
     def create_user(self,email,username,password=None):
         if not email:
@@ -191,6 +219,10 @@ class Buyer(Account):
         return super().save(*args , **kwargs)
 
 class Profile(models.Model):
+    profile_pic = CloudinaryField(
+        'images',
+        default=config('CLD_URL')
+    )
     user = models.OneToOneField(
         Account,
         null=True,
@@ -198,7 +230,7 @@ class Profile(models.Model):
         related_name="profile"
     )
     def __str__(self):
-        return  f"{self.user.username}'s profile"
+        return  f"{self.user}'s profile"
 
     @receiver(post_save, sender=Token)
     def create_user_profile(sender, instance, created, **kwargs):
@@ -208,14 +240,4 @@ class Profile(models.Model):
     @receiver(post_save, sender=Token)
     def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
-
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
 

@@ -22,5 +22,7 @@ urlpatterns = [
     path('Depending/', include("Depending_Accounts.urls")),
     path('Farmers/', include("Farming.urls")),
     path('Warehouse/', include("Warehouser.urls")),
-    path('Orders&Cart/', include("Orders.urls"))
+    path('Orders&Cart/', include("Orders.urls")),
+    path('Administration/', include("Admin.urls")),
+    path('Notifications/', include("Notifications.urls")),
 ]

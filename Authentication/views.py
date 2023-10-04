@@ -84,6 +84,24 @@ def warehouser_registration_view(request):
         return Response(data,status = status.HTTP_400_BAD_REQUEST) 
     
 @api_view(['POST'])
+def origin_warehouser_registration_view(request):
+    
+    serializer = OriginWarehouserRegistrationSerializer(data=request.data)
+    data = {}
+    if request.user:
+        if serializer.is_valid():
+            account = serializer.save()  
+            data['response'] = f"Successfully created a warehouser under {account.username} with email {account.email}"
+            return Response(data,status = status.HTTP_201_CREATED)
+        else:
+            data = serializer.errors
+            print(serializer.errors)
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+    else:
+        data['response'] = f"No admin for new user"
+        return Response(data,status = status.HTTP_400_BAD_REQUEST) 
+    
+@api_view(['POST'])
 def login(request):
     email = request.data.get("email")
     password = request.data.get("password")

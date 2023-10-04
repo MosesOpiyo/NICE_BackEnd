@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import Depending_Account
+from .models import Pending_Account
 # Register your models here.
-admin.site.register(Depending_Account)
+admin.site.register(Pending_Account)

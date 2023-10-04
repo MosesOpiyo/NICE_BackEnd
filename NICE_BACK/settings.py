@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from firebase_admin import credentials
+from decouple import config
+import firebase_admin
+import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +30,7 @@ SECRET_KEY = 'django-insecure-3&6b_c!o0n=cq298#zge2m7n18ep^5i2#8+q*eg*!b=fcrc&zh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.100.11']
+ALLOWED_HOSTS = ['192.168.137.185','192.168.100.11']
 
 
 # Application definition
@@ -39,14 +43,28 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
     'corsheaders',
+    'cloudinary',
+    'cloudinary_storage',
     'Authentication',
     'Depending_Accounts',
     'Farming',
     'Warehouser',
-    'Orders'
+    'Admin',
+    'Orders',
+    'Notifications'
 ]
+
+cloudinary.config(
+  cloud_name = 'dlzyg12i7',  
+  api_key = '755948595873632',  
+  api_secret = 'SXz0A7wV1NkRoDpmLN0wFi5PcRM'  
+)
+
+firebase_credentials = credentials.Certificate("config.json")
+firebase_app = firebase_admin.initialize_app(firebase_credentials,{
+    'databaseURL': "https://hackingapi-default-rtdb.firebaseio.com"
+})
 
 MIDDLEWARE = [
    'django.middleware.security.SecurityMiddleware',
@@ -90,7 +108,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_LIFETIME': timedelta(days=7),
     'SLIDING_TOKEN_REFRESH_LIFETIME_CALIBRATION': timedelta(days=1),
@@ -140,6 +158,8 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
+USE_L10N = True
+
 USE_TZ = True
 
 
@@ -147,6 +167,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
