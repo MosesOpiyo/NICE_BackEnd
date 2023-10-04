@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Warehouse,WarehousingRequest
+from .models import Warehouse,ShippingManifest
 from Authentication.serializers import UserSerializer
 from Farming.serializers import ProductsSerializers
 
@@ -31,11 +31,11 @@ class GetWarehouseProductsSerializers(serializers.ModelSerializer):
         model = Warehouse
         fields = ['warehoused_products']
 
-class RequestSerializers(serializers.ModelSerializer):
-    products = ProductsSerializers(many=True)
-    warehouse = WarehouseSerializers(read_only=True)
-    farmer = UserSerializer(read_only=True)
-
+class ShippingManifestSerializers(serializers.ModelSerializer):
+    warehouser = UserSerializer(read_only=True)
+    product = ProductsSerializers(read_only=True)
     class Meta:
-        model = WarehousingRequest
+        model = ShippingManifest
         fields = '__all__'
+
+
