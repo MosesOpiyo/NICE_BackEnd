@@ -1,11 +1,13 @@
-from rest_framework.decorators import api_view,permission_classes
+from rest_framework.decorators import api_view,permission_classes,authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Cart,Order
 from .serializers import CartSerializers,OrderSerializers
 from Farming.serializers import ProductsSerializers
+from Warehouser.models import Warehouse
 
 class ordersAndCart:
     @api_view(["POST"])
@@ -68,6 +70,16 @@ class ordersAndCart:
         data = {}
         order = Order.objects.filter(buyer=request.user)
         data = OrderSerializers(order).data
+        return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getWarehouseOrders(request):
+        data = {}
+        warehouse = Warehouse.objects.get(warehouser=request.user)
+        order = Order.objects.filter(warehouse=warehouse)
+        data = OrderSerializers(order,many=True).data
         return Response(data,status=status.HTTP_200_OK)
     
     
