@@ -6,6 +6,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Cart,Order
 from .serializers import CartSerializers,OrderSerializers
+from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers
 from Warehouser.models import Warehouse
 
@@ -82,7 +83,15 @@ class ordersAndCart:
         data = OrderSerializers(order,many=True).data
         return Response(data,status=status.HTTP_200_OK)
     
-    
-
+class Products:
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getProducts(request):
+        data = {}
+        products = ProcessedProducts.objects.all()
+        order = Order.objects.filter()
+        data = OrderSerializers(order,many=True).data
+        return Response(data,status=status.HTTP_200_OK)
         
     
