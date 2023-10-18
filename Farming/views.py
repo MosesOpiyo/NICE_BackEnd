@@ -3,9 +3,10 @@ from rest_framework.decorators import api_view,permission_classes,authentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from Authentication.models import Account
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
 from .models import CoffeeProducts,ProcessedProducts
+from Notifications.views import Notifications
 from Warehouser.models import ShippingManifest,Warehouse
 from .serializers import ProductsSerializers,RatingSerializers,GetProcessedProductsSerializers
 
@@ -29,7 +30,9 @@ class Farming:
                 warehouser = random_warehouse.warehouser
                 )
             manifest.save()
+            farmer = Account.objects.get(email=product.producer.email)
             data = f"New Product {name}and Manifest for {manifest.product.name} created."
+            Notifications.create_notifications(message=data,user_index=farmer.index)
             return Response(data,status=status.HTTP_201_CREATED)
         else:
             data = serializers.error_messages

@@ -1,19 +1,21 @@
 from rest_framework import serializers
 from .models import CoffeeProducts,Ratings,ProcessedProducts
+from Authentication.models import Account
 from Authentication.serializers import UserSerializer
 from datetime import datetime
 
 class ProductsSerializers(serializers.ModelSerializer):
-    producer = UserSerializer(read_only=True)
     class Meta:
         model = CoffeeProducts
         fields = '__all__'
     def save(self,request):
+        farmer = Account.objects.get(email=self.validated_data['email'])
         product = CoffeeProducts(name=self.validated_data['name'],
                                  quantity=self.validated_data['quantity'],
                                  date=datetime.now(),
                                  warehouse_approved=False,
-                                 producer=request.user,
+                                 producer = farmer,
+                                 email=self.validated_data['email'],
                                  grade=self.validated_data['grade'],
                                  origin=self.validated_data['origin'],
                                  lot_type=self.validated_data['lot_type'],
