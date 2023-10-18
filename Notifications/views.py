@@ -9,9 +9,45 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from firebase_admin import db
+from .models import Notification
 from .serialiazers import GetNotificationsSerializers
 
 class Notifications:
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def create_notifications(message,user_index):
+       notification = Notification.objects.create(
+          message = message,
+          recepient_index = user_index
+       )
+       notification.save()
+       data = "Successfully sent"
+       return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def get_notifications(request):
+       notifications = Notification.objects.filter(
+          recepient_index = request.user.index
+       )
+       data = GetNotificationsSerializers(notifications,many=True).data
+       return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def seen_notifications(message,user_index):
+       notifications = Notification.objects.filter(
+          recepient_index = user_index
+       )
+       for notification in notifications:
+          if notification.seen != True:
+            notification.seen = True
+          else:
+            None
+       return Response(data="Seen",status=status.HTTP_200_OK)
+
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def send_notification_to_user(user_index, notification_data):
