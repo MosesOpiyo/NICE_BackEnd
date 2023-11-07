@@ -12,9 +12,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from firebase_admin import credentials
 from decouple import config
-import firebase_admin
+
 import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +29,7 @@ SECRET_KEY = 'django-insecure-3&6b_c!o0n=cq298#zge2m7n18ep^5i2#8+q*eg*!b=fcrc&zh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.137.185','192.168.100.11']
+ALLOWED_HOSTS = ['192.168.137.20','192.168.100.11']
 
 
 # Application definition
@@ -52,7 +51,8 @@ INSTALLED_APPS = [
     'Warehouser',
     'Admin',
     'Orders',
-    'Notifications'
+    'Notifications',
+    'Payment'
 ]
 
 cloudinary.config(
@@ -61,13 +61,8 @@ cloudinary.config(
   api_secret = 'SXz0A7wV1NkRoDpmLN0wFi5PcRM'  
 )
 
-firebase_credentials = credentials.Certificate("config.json")
-firebase_app = firebase_admin.initialize_app(firebase_credentials,{
-    'databaseURL': "https://hackingapi-default-rtdb.firebaseio.com"
-})
-
 MIDDLEWARE = [
-   'django.middleware.security.SecurityMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,7 +75,6 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'NICE_BACK.urls'
 
 CORS_ORIGIN_ALLOW_ALL = True
-
 
 TEMPLATES = [
     {
@@ -102,9 +96,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication', 
-        
-    ]
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  
+    ],
 }
 
 SIMPLE_JWT = {
@@ -161,6 +154,16 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = config('PAYPAL_SECRET')
+PAYPAL_MODE = config('PAYPAL_MODE') 
 
 
 # Static files (CSS, JavaScript, Images)
