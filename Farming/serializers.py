@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CoffeeProducts,Ratings,ProcessedProducts
+from .models import CoffeeProducts,Ratings,ProcessedProducts,FarmerProfile
 from Authentication.models import Account
 from Authentication.serializers import UserSerializer
 from datetime import datetime
@@ -34,6 +34,7 @@ class ProductsSerializers(serializers.ModelSerializer):
         return product
     
 class GetProductsSerializers(serializers.ModelSerializer):
+    producer = UserSerializer(read_only=True)
     class Meta:
         model = CoffeeProducts
         fields = '__all__'
@@ -52,18 +53,59 @@ class RatingSerializers(serializers.ModelSerializer):
         rating.save()
         return rating
     
+class ProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = FarmerProfile
+        fields = "__all__"
+
+    def save(self,request):
+        profile = FarmerProfile(
+            farmer = request.user,
+            county = self.validated_data['county'],
+            wet_mill_name = self.validated_data['wet_mill_name'],
+            society_name = self.validated_data['society_name'],
+            factory_manager = self.validated_data['factory_manager'],
+            no_of_farmers = self.validated_data['no_of_farmers'],
+            total_acreage = self.validated_data['total_acreage'],
+            no_of_trees = self.validated_data['no_of_trees'],
+            altitude = self.validated_data['altitude'],
+            harvest_season = self.validated_data['harvest_season'],
+            annual_rainfall_amount = self.validated_data['annual_rainfall_amount'],
+            coffee_variety = self.validated_data['coffee_variety'],
+            certification_type = self.validated_data['certification_type'],
+            availability = self.validated_data['availability'],
+            location = self.validated_data['location'],
+            farm_area = self.validated_data['farm_area']
+        )
+        profile.save()
+        return profile
+    
+class GetProfileSerializers(serializers.ModelSerializer):
+    farmer = UserSerializer(read_only=True)
+    class Meta:
+        model = FarmerProfile
+        fields = "__all__"
+    
 class GetRatingSerializers(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Ratings
         fields = '__all__'
 
 class ProcessedProductsSerializer(serializers.ModelSerializer):
-    product = GetProductsSerializers(read_only=True)
-    rating = GetRatingSerializers(read_only=True,many=True)
-
     class Meta:
         model = ProcessedProducts
-        fields = '__all__'
+        fields = ['img','price','quantity']
+
+    def save(self):
+        product = ProcessedProducts(
+            img=self.validated_data['img'],
+            price=self.validated_data['price'],
+            quantity=self.validated_data['quantity']
+        )
+        product.save()
+        return product
+
     
 class GetProcessedProductsSerializers(serializers.ModelSerializer):
     product = GetProductsSerializers(read_only=True)

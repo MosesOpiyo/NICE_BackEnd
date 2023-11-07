@@ -36,8 +36,7 @@ class Ratings(models.Model):
         return f"{self.user.username}'s rating"
     
 class ProcessedProducts(models.Model):
-    img = CloudinaryField( 'products',
-        default=config('CLD_URL'))
+    img = CloudinaryField( 'products')
     product = models.OneToOneField(CoffeeProducts,on_delete=models.CASCADE)
     rating = models.ManyToManyField(Ratings)
     price = models.IntegerField(default=0)
@@ -49,7 +48,22 @@ class ProcessedProducts(models.Model):
 
 class FarmerProfile(models.Model):
     farmer = models.OneToOneField(Farmer,on_delete=models.CASCADE)
-    products = models.ManyToManyField(CoffeeProducts)
+    county = models.TextField(default="")
+    wet_mill_name = models.TextField(default="")
+    society_name = models.TextField(default="")
+    factory_chairman = models.TextField(default="")
+    factory_manager = models.TextField(default="")
+    no_of_farmers = models.TextField(default="")
+    total_acreage = models.TextField(default="")
+    no_of_trees = models.TextField(default="")
+    altitude = models.TextField(default="")
+    harvest_season = models.TextField(default="")
+    annual_rainfall_amount = models.TextField(default="")
+    coffee_variety = models.TextField(default="")
+    certification_type = models.TextField(default="")
+    availability = models.TextField(default="")
+    location = models.TextField(default="")
+    farm_area = models.IntegerField(default=0)
     
     def __str__(self):
         return self.farmer.username

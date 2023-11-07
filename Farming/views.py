@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from Authentication.models import Account
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import CoffeeProducts,ProcessedProducts
+from .models import CoffeeProducts,ProcessedProducts,FarmerProfile
 from Notifications.views import Notifications
 from Warehouser.models import ShippingManifest,Warehouse
-from .serializers import ProductsSerializers,RatingSerializers,GetProcessedProductsSerializers
+from .serializers import ProductsSerializers,RatingSerializers,GetProcessedProductsSerializers,GetProfileSerializers
 
 
 # Create your views here.
@@ -18,21 +18,9 @@ class Farming:
     @permission_classes([IsAuthenticated])
     def newProduct(request):
         data = {}
-        warehouses = Warehouse.objects.all()
-        random_warehouse = random.choice(warehouses)
         serializers = ProductsSerializers(data=request.data)
         if serializers.is_valid():
-            product = serializers.save(request)
-            name = product.name
-            manifest = ShippingManifest.objects.create(
-                number = binascii.hexlify(os.urandom(5)).decode('utf-8'),
-                product = product,
-                warehouser = random_warehouse.warehouser
-                )
-            manifest.save()
-            farmer = Account.objects.get(email=product.producer.email)
-            data = f"New Product {name}and Manifest for {manifest.product.name} created."
-            Notifications.create_notifications(message=data,user_index=farmer.index)
+            serializers.save(request)
             return Response(data,status=status.HTTP_201_CREATED)
         else:
             data = serializers.error_messages
@@ -47,6 +35,15 @@ class Farming:
         data =  ProductsSerializers(products,many=True).data
         return Response(data,status = status.HTTP_200_OK)
     
+    @api_view(['GET'])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getProfile(request):
+        data = {}
+        profile = FarmerProfile.objects.get(farmer=request.user)
+        data =  GetProfileSerializers(profile).data
+        return Response(data,status = status.HTTP_200_OK)
+
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
@@ -99,4 +96,20 @@ class Processed:
         product = ProcessedProducts.objects.prefetch_related('rating').select_related('product').get(id=id)
         data = GetProcessedProductsSerializers(product).data
         return Response(data,status = status.HTTP_200_OK)  
-    
+
+from Admin.models import Requests
+from Admin.email import send_welcome_email
+
+class ProductRequests:
+    @api_view(['GET'])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def request(request):
+        new_request = Requests.objects.create(
+            user=request.user
+        )
+        send_welcome_email(name=request.user.username,receiver=request.user.email)
+        return Response(data="Request is being processed.",status=status.HTTP_200_OK)
+        
+
+          
