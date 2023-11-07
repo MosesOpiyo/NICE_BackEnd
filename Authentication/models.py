@@ -48,7 +48,7 @@ class Account(AbstractBaseUser,PermissionsMixin):
     index = models.CharField(max_length=10,default="")
     type = models.CharField(_("Type"),max_length=100,choices=Type.choices,default=Type.BUYER)
     email = models.EmailField(verbose_name="email",max_length=100,unique=True,null=True)
-    username = models.CharField(max_length=30,unique=True)
+    username = models.CharField(max_length=30)
     date_joined = models.DateTimeField(verbose_name="date joined",auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="last login",auto_now=True)
     is_admin = models.BooleanField(default=False)
@@ -149,7 +149,7 @@ class OriginWarehouserManager(models.Manager):
       
     def get_queryset(self , *args,  **kwargs):
         queryset = super().get_queryset(*args , **kwargs)
-        queryset = queryset.filter(type = Account.Type.WAREHOUSER)
+        queryset = queryset.filter(type = Account.Type.ORIGINWAREHOUSER)
         return queryset
 
 class OriginWarehouser(Account):
@@ -157,7 +157,7 @@ class OriginWarehouser(Account):
     objects = OriginWarehouserManager()
 
     def save(self , *args , **kwargs):
-        self.type = Account.Type.WAREHOUSER
+        self.type = Account.Type.ORIGINWAREHOUSER
         return super().save(*args , **kwargs)
     
 class WarehouserManager(models.Manager):

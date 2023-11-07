@@ -1,12 +1,13 @@
-from rest_framework.decorators import api_view,authentication_classes, permission_classes
+from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import AccessToken 
 from rest_framework.decorators import authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 
+from Farming.models import FarmerProfile
+from Orders.models import Cart
 from .serializers import *
 from .models import *
 from .tokens import create_jwt_pair_for_user
@@ -16,18 +17,20 @@ def registration_view(request):
     
     serializer = BuyerRegistrationSerializer(data=request.data)
     data = {}
-    if request.user:
-        if serializer.is_valid():
-            account = serializer.save()  
-            data['response'] = f"Successfully created a buyer under {account.username} with email {account.email}"
-            return Response(data,status = status.HTTP_201_CREATED)
-        else:
-            data = serializer.errors
-            print(serializer.errors)
-            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+    if serializer.is_valid():
+        account = serializer.save()
+        new_cart = Cart.objects.create(
+            buyer = account
+        )
+        new_cart.save()
+        data['response'] = f"Successfully created a buyer under {account.username} with email {account.email}"
+        return Response(data,status = status.HTTP_201_CREATED)
     else:
-        data['response'] = f"No admin for new user"
-        return Response(data,status = status.HTTP_400_BAD_REQUEST) 
+        error = serializer.errors.pop('email')
+        data = f"{error[0]}"
+        print(error[0])
+        return Response(data,status=status.HTTP_400_BAD_REQUEST)
+   
     
 @api_view(['POST'])
 def admin_registration_view(request):
@@ -54,7 +57,8 @@ def farmer_registration_view(request):
     data = {}
     if request.user:
         if serializer.is_valid():
-            account = serializer.save()  
+            account = serializer.save()
+            profile = FarmerProfile.objects.create(farmer=account)
             data['response'] = f"Successfully created a farmer under {account.username} with email {account.email}"
             return Response(data,status = status.HTTP_201_CREATED)
         else:
@@ -84,8 +88,7 @@ def warehouser_registration_view(request):
         return Response(data,status = status.HTTP_400_BAD_REQUEST) 
     
 @api_view(['POST'])
-def origin_warehouser_registration_view(request):
-    
+def origin_warehouser_registration_view(request): 
     serializer = OriginWarehouserRegistrationSerializer(data=request.data)
     data = {}
     if request.user:
