@@ -8,5 +8,7 @@ urlpatterns = [
     path("PendingAccounts",Admin.allPendingAccounts,name="pending_accounts"),
     path("PendingActivation/<int:id>",Admin.validatePendingAccount,name="activation"),
     path("ActiveAdmins",Admin.activeAdmins,name="active_admins"),
-    path("WarehousingRequests",Admin.warehousingRequests,name="requests")
+    path("WarehousingRequests",Admin.warehousingRequests,name="requests"),
+    path("ProcessedProducts",Admin. getProcessedProduct,name="products"),
+    path("Requests",Admin.getProductRequest,name="requests")
 ]

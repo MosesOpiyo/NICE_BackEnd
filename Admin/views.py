@@ -9,7 +9,10 @@ from Authentication.models import Buyer,Farmer,Warehouser,Account
 from Authentication.serializers import AccountSerializer,FarmerRegistrationSerializer
 from Depending_Accounts.models import Pending_Account
 from Depending_Accounts.serializers import GetPendingSerializers
-from Farming.models import CoffeeProducts
+from Farming.models import CoffeeProducts,ProcessedProducts
+from Farming.serializers import ProcessedProductsSerializer,GetProcessedProductsSerializers
+from .models import Requests
+from .serializers import RequestsSerializers
 
 # Create your views here.
 class Admin:
@@ -118,6 +121,32 @@ class Admin:
         else:
             account = Account.objects.get(id=request.user.id)
             account.delete()
+
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getProcessedProduct(request):
+        data = {}
+        products = ProcessedProducts.objects.all()
+        data = GetProcessedProductsSerializers(products,many=True).data
+        return Response(data,status=status.HTTP_200_OK)
+
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def addProcessedProduct(request):
+        data = {}
+        serializer = ProcessedProductsSerializer(data=request.data)
+
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getProductRequest(request):
+        data = {}
+        requests = Requests.objects.all()
+        data = RequestsSerializers(requests,many=True).data
+        return Response(data,status=status.HTTP_200_OK)
+
 
     
 
