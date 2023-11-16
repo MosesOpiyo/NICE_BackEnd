@@ -54,9 +54,10 @@ class RatingSerializers(serializers.ModelSerializer):
         return rating
     
 class ProfileSerializers(serializers.ModelSerializer):
+    farmer = UserSerializer(read_only=True)
     class Meta:
         model = FarmerProfile
-        fields = "__all__"
+        fields = '__all__'
 
     def save(self,request):
         profile = FarmerProfile(
@@ -79,6 +80,32 @@ class ProfileSerializers(serializers.ModelSerializer):
         )
         profile.save()
         return profile
+    
+class UpdateProfileSerializers(serializers.ModelSerializer):
+    farmer = UserSerializer(read_only=True)
+    class Meta:
+        model = FarmerProfile
+        fields = '__all__'
+
+    def save(self,id,request):
+        farmer_profile = FarmerProfile.objects.get(id=id)
+        farmer_profile.county = self.validated_data['county'],
+        farmer_profile.wet_mill_name = self.validated_data['wet_mill_name'],
+        farmer_profile.society_name = self.validated_data['society_name'],
+        farmer_profile.factory_manager = self.validated_data['factory_manager'],
+        farmer_profile.no_of_farmers = self.validated_data['no_of_farmers'],
+        farmer_profile.total_acreage = self.validated_data['total_acreage'],
+        farmer_profile.no_of_trees = self.validated_data['no_of_trees'],
+        farmer_profile.altitude = self.validated_data['altitude'],
+        farmer_profile.harvest_season = self.validated_data['harvest_season'],
+        farmer_profile.annual_rainfall_amount = self.validated_data['annual_rainfall_amount'],
+        farmer_profile.coffee_variety = self.validated_data['coffee_variety'],
+        farmer_profile.certification_type = self.validated_data['certification_type'],
+        farmer_profile.availability = self.validated_data['availability'],
+        farmer_profile.location = self.validated_data['location'],
+        farmer_profile.farm_area = self.validated_data['farm_area']
+        farmer_profile.save()
+        return farmer_profile
     
 class GetProfileSerializers(serializers.ModelSerializer):
     farmer = UserSerializer(read_only=True)

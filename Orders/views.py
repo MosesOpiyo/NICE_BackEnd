@@ -4,37 +4,57 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from .models import Cart,Order
-from .serializers import CartSerializers,OrderSerializers
+from .models import Cart,Order,CartItem
+from .serializers import CartSerializers,OrderSerializers,CartItemSerializers
 from Farming.models import ProcessedProducts
-from Farming.serializers import ProductsSerializers
+from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.models import Warehouse
 
 class ordersAndCart:
-    @api_view(["POST"])
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
-    def addToCart(request):
+    def removeToCart(request,id):
         data = {}
-        product_serializer = ProductsSerializers(data=request.data)
-        if product_serializer.is_valid():
-            cart = Cart.objects.get(buyer=request.user)
-            if cart:
-                cart.products.add(product_serializer)
-                cart.save()
-                return Response(status=status.HTTP_202_ACCEPTED)
-            else:
-                new_cart = Cart.objects.create(
-                    buyer = request.user
-                )
-                new_cart.products.add(product_serializer)
-                new_cart.save()
-                return Response(status=status.HTTP_202_ACCEPTED)
-        else:
-            data = product_serializer.error_messages
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
+        product = ProcessedProducts.objects.get(id=id)
+        cart = Cart.objects.get(buyer = request.user)
+        cart.products.remove(product)
+        data = f"{product.product.name} has been removed to your cart."
+        return Response(data,status=status.HTTP_202_ACCEPTED)
+    
     @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def addToCart(request,id):
+        data = {}
+        serializers = CartItemSerializers(data=request.data)
+        product = ProcessedProducts.objects.get(id=id)
+        if serializers.is_valid():
+            item = serializers.save()
+            item.product = product
+            item.save()
+            if item.roast_type != "":
+                item.type = "Roasted"
+            elif item.roast_type == "":
+                item.type = "Green"
+            cart = Cart.objects.get(buyer = request.user)
+            cart.products.add(item)
+            data = f"{item.product.product.name} has been added to your cart."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
+        
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def removeFromCart(request,id):
+        data = {}
+        item = CartItem.objects.get(id=id)
+        cart = Cart.objects.get(buyer = request.user)
+        cart.products.remove(item)
+        data = f"{item.product.product.name} has been remove to your cart."
+        return Response(data,status=status.HTTP_202_ACCEPTED)
+        
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def newOrder(request):
         data = {}
@@ -58,6 +78,7 @@ class ordersAndCart:
         
 
     @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def getCart(request):
         data = {}
@@ -66,6 +87,7 @@ class ordersAndCart:
         return Response(data,status=status.HTTP_200_OK)
     
     @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def getOrders(request):
         data = {}
@@ -90,8 +112,16 @@ class Products:
     def getProducts(request):
         data = {}
         products = ProcessedProducts.objects.all()
-        order = Order.objects.filter()
-        data = OrderSerializers(order,many=True).data
+        data = GetProcessedProductsSerializers(products,many=True).data
+        return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getProduct(request,id):
+        data = {}
+        products = ProcessedProducts.objects.get(id=id)
+        data = GetProcessedProductsSerializers(products).data
         return Response(data,status=status.HTTP_200_OK)
         
     

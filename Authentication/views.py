@@ -58,7 +58,6 @@ def farmer_registration_view(request):
     if request.user:
         if serializer.is_valid():
             account = serializer.save()
-            profile = FarmerProfile.objects.create(farmer=account)
             data['response'] = f"Successfully created a farmer under {account.username} with email {account.email}"
             return Response(data,status = status.HTTP_201_CREATED)
         else:

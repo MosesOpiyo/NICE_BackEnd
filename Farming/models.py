@@ -47,7 +47,7 @@ class ProcessedProducts(models.Model):
 
 
 class FarmerProfile(models.Model):
-    farmer = models.OneToOneField(Farmer,on_delete=models.CASCADE)
+    farmer = models.OneToOneField(Account,on_delete=models.CASCADE,unique=True)
     county = models.TextField(default="")
     wet_mill_name = models.TextField(default="")
     society_name = models.TextField(default="")

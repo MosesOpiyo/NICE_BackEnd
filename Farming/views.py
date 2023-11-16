@@ -8,7 +8,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import CoffeeProducts,ProcessedProducts,FarmerProfile
 from Notifications.views import Notifications
 from Warehouser.models import ShippingManifest,Warehouse
-from .serializers import ProductsSerializers,RatingSerializers,GetProcessedProductsSerializers,GetProfileSerializers
+from .serializers import ProductsSerializers,RatingSerializers,GetProcessedProductsSerializers,GetProfileSerializers,ProfileSerializers
 
 
 # Create your views here.
@@ -24,7 +24,7 @@ class Farming:
             return Response(data,status=status.HTTP_201_CREATED)
         else:
             data = serializers.error_messages
-            Response(data,status=status.HTTP_400_BAD_REQUEST)
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
@@ -35,14 +35,34 @@ class Farming:
         data =  ProductsSerializers(products,many=True).data
         return Response(data,status = status.HTTP_200_OK)
     
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def newProfileDetails(request):
+        data = {}
+        serializers = ProfileSerializers(data=request.data)
+        if serializers.is_valid():
+            details = serializers.save(request)
+            data = f"Details for {details.farmer}'s Farm have been added."
+            return Response(data=data,status=status.HTTP_202_ACCEPTED)
+        else:
+            print(serializers.data)
+            data = serializers.errors
+            print(data)
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+    
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def getProfile(request):
         data = {}
-        profile = FarmerProfile.objects.get(farmer=request.user)
-        data =  GetProfileSerializers(profile).data
-        return Response(data,status = status.HTTP_200_OK)
+        try:
+            profile = FarmerProfile.objects.get(farmer=request.user)
+            data =  GetProfileSerializers(profile).data
+            return Response(data,status = status.HTTP_200_OK)
+        except:
+            data =  ""
+            return Response(data,status = status.HTTP_200_OK)
 
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
