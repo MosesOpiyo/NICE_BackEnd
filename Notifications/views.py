@@ -14,11 +14,11 @@ from .serialiazers import GetNotificationsSerializers
 class Notifications:
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
-    def create_notifications(message,user_index):
+    def create_notifications(message,user_index,origin,farmer):
        notification = Notification.objects.create(
           message = message,
-          recepient_index = user_index
        )
+       notification.recipients.add(user_index,origin,farmer)
        notification.save()
        data = "Successfully sent"
        return Response(data,status=status.HTTP_200_OK)
@@ -27,9 +27,8 @@ class Notifications:
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def get_notifications(request):
-       notifications = Notification.objects.filter(
-         recepient_index = request.user.index
-       )
+       notifications = Notification.objects.filter()
+       notifications
        if len(notifications) > 1:
          data = GetNotificationsSerializers(notifications,many=True).data
          return Response(data,status=status.HTTP_200_OK)
