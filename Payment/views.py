@@ -7,6 +7,9 @@ from rest_framework import status as Status
 
 import requests
 import json
+from Farming.models import ProcessedProducts
+
+from Orders.models import Order,Cart
 from decouple import config
 from .utils import make_paypal_payment,verify_paypal_payment
 
@@ -46,7 +49,7 @@ class PaymentII:
     def create_payment(request,amount):
 
         paypalrestsdk.configure({
-        "mode": "live", # sandbox or live
+        "mode": "live",
         "client_id": config('PAYPAL_CLIENT_ID'),
         "client_secret": config('PAYPAL_SECRET') })
 
@@ -65,13 +68,15 @@ class PaymentII:
 
         if payment.create():
             print("Payment created successfully")
-
+            cart = Cart.objects.get(buyer=request.user)
+            for item in cart.products:
+                if item.type == "Roasted":
+                    products = ProcessedProducts.objects.filter()
+                elif item.type == "Green":
+                    False
             for link in payment.links:
                 if link.rel == "approval_url":
-                    # Convert to str to avoid Google App Engine Unicode issue
-                    # https://github.com/paypal/rest-api-sdk-python/pull/58
                     approval_url = str(link.href)
-                    print("Redirect for approval: %s" % (approval_url))
                     return Response(data=approval_url,status=Status.HTTP_200_OK)               
         else:
             print(payment.error)
