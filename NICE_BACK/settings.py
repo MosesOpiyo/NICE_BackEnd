@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'Authentication',
-    'Depending_Accounts',
     'Farming',
     'Warehouser',
     'Admin',
