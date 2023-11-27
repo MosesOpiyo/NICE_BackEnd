@@ -37,10 +37,11 @@ class Ratings(models.Model):
     
 class ProcessedProducts(models.Model):
     img = CloudinaryField( 'products')
-    product = models.OneToOneField(CoffeeProducts,on_delete=models.CASCADE)
+    product = models.ForeignKey(CoffeeProducts,on_delete=models.CASCADE)
     rating = models.ManyToManyField(Ratings)
     price = models.IntegerField(default=0)
     quantity = models.IntegerField(default=0)
+    code = models.CharField(max_length=10,default="")
 
     def __str__(self):
         return self.product.name
@@ -49,19 +50,27 @@ class ProcessedProducts(models.Model):
 class FarmerProfile(models.Model):
     farmer = models.OneToOneField(Account,on_delete=models.CASCADE,unique=True)
     county = models.TextField(default="")
+    country = models.TextField(default="")
     wet_mill_name = models.TextField(default="")
     society_name = models.TextField(default="")
     factory_chairman = models.TextField(default="")
     factory_manager = models.TextField(default="")
     no_of_farmers = models.TextField(default="")
+    men = models.TextField(default="")
+    women = models.TextField(default="")
     total_acreage = models.TextField(default="")
     no_of_trees = models.TextField(default="")
     altitude = models.TextField(default="")
     harvest_season = models.TextField(default="")
     annual_rainfall_amount = models.TextField(default="")
     coffee_variety = models.TextField(default="")
+    farming_method = models.TextField(default="")
     certification_type = models.TextField(default="")
+    soil_type = models.TextField(default="")
+    processing_method = models.TextField(default="")
+    cupping_notes = models.TextField(default="")
     availability = models.TextField(default="")
+    grower_history = models.TextField(default="")
     location = models.TextField(default="")
     farm_area = models.IntegerField(default=0)
     
@@ -69,3 +78,7 @@ class FarmerProfile(models.Model):
         return self.farmer.username
 
 
+class Stories(models.Model):
+    media = CloudinaryField("/stories")
+    caption = models.TextField(default="")
+    user = models.ForeignKey(Account,on_delete=models.CASCADE)

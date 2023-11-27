@@ -1,8 +1,12 @@
+import binascii,os
 from rest_framework import serializers
-from .models import CoffeeProducts,Ratings,ProcessedProducts,FarmerProfile
+from .models import *
 from Authentication.models import Account
 from Authentication.serializers import UserSerializer
 from datetime import datetime
+
+from Notifications.models import Notification
+from Authentication.models import Farmer 
 
 class ProductsSerializers(serializers.ModelSerializer):
     class Meta:
@@ -31,6 +35,10 @@ class ProductsSerializers(serializers.ModelSerializer):
                                  shipment_successful=False
                                  )
         product.save()
+        notification = Notification.objects.create(
+            message = "New Product has been created and registered."  
+        )
+        notification.recipients.add(farmer.index)
         return product
     
 class GetProductsSerializers(serializers.ModelSerializer):
@@ -60,8 +68,14 @@ class ProfileSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
     def save(self,request):
+        farmer = Farmer.objects.create(
+            email = self.validated_data['email'],
+            username = self.validated_data['username'],
+        )
+        password = binascii.hexlify(os.urandom(10)).decode('utf-8')
+        farmer.set_password(password)
         profile = FarmerProfile(
-            farmer = request.user,
+            farmer = farmer,
             county = self.validated_data['county'],
             wet_mill_name = self.validated_data['wet_mill_name'],
             society_name = self.validated_data['society_name'],
@@ -75,6 +89,49 @@ class ProfileSerializers(serializers.ModelSerializer):
             coffee_variety = self.validated_data['coffee_variety'],
             certification_type = self.validated_data['certification_type'],
             availability = self.validated_data['availability'],
+            location = self.validated_data['location'],
+            farm_area = self.validated_data['farm_area']
+        )
+        profile.save()
+        return profile
+    
+class ExcelSerializers(serializers.ModelSerializer):
+    farmer = UserSerializer(read_only=True)
+    class Meta:
+        model = FarmerProfile
+        fields = '__all__'
+
+    def save(self,request):
+        farmer = Farmer.objects.create(
+            email = self.validated_data['email'],
+            username = self.validated_data['factory_manager'],
+        )
+        password = binascii.hexlify(os.urandom(10)).decode('utf-8')
+        farmer.set_password(password)
+        profile = FarmerProfile(
+            farmer = farmer,
+            county = self.validated_data['county'],
+            country = self.validated_data['country'],
+            wet_mill_name = self.validated_data['wet_mill_name'],
+            society_name = self.validated_data['society_name'],
+            factory_chairman = self.validated_data['factory_chairman'],
+            factory_manager = self.validated_data['factory_manager'],
+            no_of_farmers = self.validated_data['no_of_farmers'],
+            men = self.validated_data['men'],
+            women = self.validated_data['women'],
+            total_acreage = self.validated_data['total_acreage'],
+            no_of_trees = self.validated_data['no_of_trees'],
+            altitude = self.validated_data['altitude'],
+            harvest_season = self.validated_data['harvest_season'],
+            annual_rainfall_amount = self.validated_data['annual_rainfall_amount'],
+            coffee_variety = self.validated_data['coffee_variety'],
+            farming_method = self.validated_data['farming_method'],
+            certification_type = self.validated_data['certification_type'],
+            soil_type = self.validated_data['soil_type'],
+            processing_method = self.validated_data['processing_method'],
+            cupping_notes = self.validated_data['cupping_notes'],
+            availability = self.validated_data['availability'],
+            grower_history = self.validated_data['grower_history'],
             location = self.validated_data['location'],
             farm_area = self.validated_data['farm_area']
         )
@@ -122,16 +179,38 @@ class GetRatingSerializers(serializers.ModelSerializer):
 class ProcessedProductsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcessedProducts
-        fields = ['img','price','quantity']
+        fields = ['img','quantity','code']
 
-    def save(self):
+    def save(self,request,id):
+        product = CoffeeProducts.objects.get(id=id)
         product = ProcessedProducts(
-            img=self.validated_data['img'],
-            price=self.validated_data['price'],
-            quantity=self.validated_data['quantity']
+            img = self.validated_data['img'],
+            product=product,
+            quantity=self.validated_data['quantity'],
+            code=request.user.index
         )
         product.save()
         return product
+    
+class StoriesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stories
+        fields = "__all__"
+
+    def save(self,request):
+        user = Account.objects.get(id = request.user.id)
+        story = Stories(
+            media = self.validated_data['media'],
+            caption = self.validated_data['caption']
+        )
+        story.save()
+        user
+        return story
+    
+class GetStoriesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stories
+        fields = "__all__"
 
     
 class GetProcessedProductsSerializers(serializers.ModelSerializer):

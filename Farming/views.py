@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from Authentication.models import Account
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import CoffeeProducts,ProcessedProducts,FarmerProfile
+from .models import *
 from Notifications.views import Notifications
 from Warehouser.models import ShippingManifest,Warehouse
-from .serializers import ProductsSerializers,RatingSerializers,GetProcessedProductsSerializers,GetProfileSerializers,ProfileSerializers
+from .serializers import *
 
 
 # Create your views here.
@@ -21,6 +21,19 @@ class Farming:
         serializers = ProductsSerializers(data=request.data)
         if serializers.is_valid():
             serializers.save(request)
+            return Response(data,status=status.HTTP_201_CREATED)
+        else:
+            data = serializers.error_messages
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+        
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def newProcessedProduct(request,id):
+        data = {}
+        serializers = ProcessedProductsSerializer(data=request.data)
+        if serializers.is_valid():
+            serializers.save(id=id,request=request)
             return Response(data,status=status.HTTP_201_CREATED)
         else:
             data = serializers.error_messages
@@ -132,4 +145,40 @@ class ProductRequests:
         return Response(data="Request is being processed.",status=status.HTTP_200_OK)
         
 
-          
+class Excel:
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def farmerCreationInBulk(request):
+        data = {}
+        serializers = ProfileSerializers(data=request.data)
+        product = ProcessedProducts.objects.prefetch_related('rating').select_related('product').get(id=id)
+        if serializers.is_valid():
+            rating = serializers.save(request)
+            product.rating.add(rating)
+            product.save()
+            return Response(data,status=status.HTTP_201_CREATED)
+        else:
+            data = serializers.error_messages
+            Response(data,status=status.HTTP_400_BAD_REQUEST) 
+
+
+class Story:
+    @api_view(["POST","GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def newStory(request):
+        data = {}
+        if request.method == "POST":
+            serializers = StoriesSerializer(data=request.data)
+            if serializers.is_valid():
+                serializers.save(request=request)
+                return Response(data,status=status.HTTP_201_CREATED)
+            else:
+                data = serializers.error_messages
+                return Response(data,status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == "GET":
+            stories = Stories.objects.all()
+            data = GetStoriesSerializer(stories,many=True).data
+            return Response(data,status = status.HTTP_200_OK)  
+
