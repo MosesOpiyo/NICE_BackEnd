@@ -6,11 +6,11 @@ from Warehouser.models import Warehouse
 class CartItem(models.Model):
     product = models.ForeignKey(ProcessedProducts,on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0,null=True)
-    price = models.IntegerField(default=0)
+    price = models.FloatField(default=0)
     grind = models.TextField(default="",null=True)
     roast_type = models.TextField(default="",null=True)
     type = models.TextField(default="")
-
+    code = models.CharField(max_length=10,default="") 
     def __str__(self):
         return f"Cart Item: {self.id}"
 
@@ -22,10 +22,11 @@ class Cart(models.Model):
         return f"{self.buyer}'s Cart"
 
 class Order(models.Model):
-    buyer = models.OneToOneField(Buyer,on_delete=models.CASCADE)
-    product = models.OneToOneField(CoffeeProducts,on_delete=models.CASCADE)
+    buyer = models.ForeignKey(Buyer,on_delete=models.CASCADE)
+    green_product = models.ManyToManyField(CoffeeProducts)
+    processed_product = models.ManyToManyField(ProcessedProducts)
     quantity = models.IntegerField(default=0)
-    warehouse = models.OneToOneField(Warehouse,on_delete=models.CASCADE,null=True)
+    warehouse = models.ForeignKey(Warehouse,on_delete=models.CASCADE,null=True)
     country = models.TextField(default="")
     date = models.DateField(null=True,blank=True)
     marker = models.IntegerField(default=0)

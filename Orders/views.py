@@ -28,19 +28,16 @@ class ordersAndCart:
     def addToCart(request,id):
         data = {}
         serializers = CartItemSerializers(data=request.data)
-        product = ProcessedProducts.objects.get(id=id)
         if serializers.is_valid():
-            item = serializers.save()
-            item.product = product
-            item.save()
-            if item.roast_type != "":
-                item.type = "Roasted"
-            elif item.roast_type == "":
-                item.type = "Green"
+            item = serializers.save(id=id)
             cart = Cart.objects.get(buyer = request.user)
             cart.products.add(item)
             data = f"{item.product.product.name} has been added to your cart."
             return Response(data,status=status.HTTP_202_ACCEPTED)
+        else:
+            data = serializers.errors
+            print(data)
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
         
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
