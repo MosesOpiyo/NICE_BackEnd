@@ -7,8 +7,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from Authentication.models import Buyer,Farmer,Warehouser,Account
 from Authentication.serializers import AccountSerializer,FarmerRegistrationSerializer
-from Depending_Accounts.models import Pending_Account
-from Depending_Accounts.serializers import GetPendingSerializers
 from Farming.models import CoffeeProducts,ProcessedProducts
 from Farming.serializers import ProcessedProductsSerializer,GetProcessedProductsSerializers
 from .models import Requests
@@ -43,45 +41,6 @@ class Admin:
             account = Account.objects.get(id=request.user.id)
             account.delete()
 
-    @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def allPendingAccounts(request):
-        data = {}
-        if request.user.is_staff == True and request.user.is_admin == True and request.user.is_authenticated:
-            accounts = Pending_Account.objects.all()
-            data = GetPendingSerializers(accounts,many=True).data
-            return Response(data=data,status=status.HTTP_200_OK)
-        else:
-            account = Account.objects.get(id=request.user.id)
-            account.delete()
-
-    @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def validatePendingAccount(request,id):
-        data = {}
-        if request.user.is_staff == True and request.user.is_admin == True and request.user.is_authenticated:
-            pending_account = Pending_Account.objects.get(id=id)
-            account_data = {
-                "email":pending_account.email,
-                "username":pending_account.username,
-                "password":binascii.hexlify(os.urandom(5)).decode('utf-8')
-            }
-            serializer = FarmerRegistrationSerializer(data=account_data)
-            if serializer.is_valid():
-                serializer.save()
-                pending_account.delete()
-                data = f"{serializer.data['username']}'s account has been temporarily activated. Waiting for password validation for full activation."
-                return Response(data=data,status=status.HTTP_200_OK)
-            else:
-                data = serializer.errors
-                print(serializer.errors)
-                return Response(data=data,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            account = Account.objects.get(id=request.user.id)
-            account.delete()
-            
 
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
@@ -145,6 +104,16 @@ class Admin:
         data = {}
         requests = Requests.objects.all()
         data = RequestsSerializers(requests,many=True).data
+        return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def deleteUser(request,id):
+        data = {}
+        user = Account.objects.get(id=id)
+        user.delete()
+        data = f"user: {user.username} has been deleted."
         return Response(data,status=status.HTTP_200_OK)
 
 

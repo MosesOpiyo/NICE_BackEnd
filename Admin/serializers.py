@@ -7,3 +7,4 @@ class RequestsSerializers(serializers.ModelSerializer):
     class Meta:
         model = Requests
         fields = '__all__'
+
