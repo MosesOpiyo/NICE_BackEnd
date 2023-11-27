@@ -4,15 +4,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from cloudinary.uploader import upload
 
 from .models import Warehouse,ShippingManifest
 from Authentication.models import Warehouser,Account
 from Authentication.serializers import UserSerializer
-from Notifications.views import Notifications
-from Farming.models import CoffeeProducts
-from Notifications.views import Notifications
+from Farming.models import CoffeeProducts,ProcessedProducts
+from Notifications.models import Notification
 from .serializers import WarehouseSerializers,GetWarehouseSerializers,ShippingManifestSerializers,GetShippingManifestSerializers
-from Farming.serializers import ProductsSerializers
+from Farming.serializers import ProductsSerializers,ProcessedProductsSerializer
 
 class WarehouseClass:
     @api_view(["POST"])
@@ -33,19 +33,27 @@ class WarehouseClass:
         data = {}
         try:
             warehouse = Warehouse.objects.select_related('warehouser').prefetch_related('warehoused_products').get(warehouser=request.user)
-            if warehouse:
+            try:
                 data =  GetWarehouseSerializers(warehouse).data
                 return Response(data,status = status.HTTP_200_OK)
-            else:
+            except:
                 new_warehouse = Warehouse.objects.create(
                    warehouser = request.user
                 )
                 data = GetWarehouseSerializers(new_warehouse).data
                 return Response(data,status = status.HTTP_200_OK)
         except:
-            warehouse = Warehouse.objects.select_related('warehouser').prefetch_related('warehoused_products').get(name='NICE WAREHOUSE')
-            data =  GetWarehouseSerializers(warehouse).data
-            return Response(data,status = status.HTTP_200_OK)
+            if request.user.type == "ORIGINWAREHOUSER":
+                warehouse = Warehouse.objects.select_related('warehouser').prefetch_related('warehoused_products').get(name='NICE WAREHOUSE')
+                data =  GetWarehouseSerializers(warehouse).data
+                return Response(data,status = status.HTTP_200_OK)
+            else:
+                new_warehouse = Warehouse.objects.create(
+                   name = f"{request.user}'s Warehouse",
+                   warehouser = request.user
+                )
+                data = GetWarehouseSerializers(new_warehouse).data
+                return Response(data,status = status.HTTP_200_OK)
     
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
@@ -66,10 +74,9 @@ class shippingClass:
         serializer = ShippingManifestSerializers(data=request.data)
         if serializer.is_valid():
             manifest = serializer.save(id=id)
-            warehouser = Account.objects.get(email = manifest.warehouser)
-            warehouse = Warehouse.objects.get(warehouser = warehouser)
-            data = F"Manifest:{manifest.number} for product:{manifest.product} created and ready for shipping to {warehouser.username}."
-            Notifications.create_notifications(message=data,user_index=warehouser.index)
+            notification_data = Notification.objects.create(message=f"Product:{manifest.product} of Manifest:{manifest.number} set for shipping to your warehouse")
+            warehouser = Account.objects.get(email=manifest.warehouser)
+            warehouser.notifications.add(notification_data)
         return Response(data,status=status.HTTP_200_OK)
     
     @api_view(['GET'])
@@ -88,7 +95,6 @@ class shippingClass:
         data = {}
         warehousers = Warehouser.objects.all()
         data = UserSerializer(warehousers,many=True).data
-        print(data)
         return Response(data,status=status.HTTP_200_OK)
 
     @api_view(['GET'])
@@ -99,11 +105,6 @@ class shippingClass:
         manifest = ShippingManifest.objects.get(id=id)
         manifest.shipping_approval = True
         manifest.save()
-        notification_data = {
-           "title": "Manifest Approval",
-           "body":f"Product:{manifest.product} of Manifest:{manifest.number} set for shipping to your warehouse"
-        }
-        Notifications.send_notification_to_user(user_index=manifest.warehouser.index,notification_data=notification_data)
         data = "Shipping Set"
         return Response(data,status=status.HTTP_200_OK)
     
@@ -114,10 +115,29 @@ class shippedClass:
     def getManifest(request,number):
         data = {}
         manifest = ShippingManifest.objects.select_related('product').get(number=number)
-        print(manifest)
         warehouse = Warehouse.objects.select_related('warehouser').prefetch_related('warehoused_products','processed_products').get(warehouser=request.user)
         warehouse.warehoused_products.add(manifest)
+        assets_folder = 'assets'
+        for image_name in os.listdir(assets_folder):
+            image_path = os.path.join(assets_folder, image_name)
+            try:
+                cloudinary_response = upload(image_path)
+                cloudinary_url = cloudinary_response['url'].replace('http://res.cloudinary.com/dlzyg12i7/', '')
+            except Exception as e:
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            product_data = {'img': cloudinary_url,'quantity':0}
+            product_serializer = ProcessedProductsSerializer(data=product_data)
+            if product_serializer.is_valid():
+                product_serializer.save(id=manifest.product.pk,request=request)
+            else:
+                return Response(product_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            
         warehouse.save()
         data = f"{manifest.product} has been added to your inventory."
+        notification = Notification.objects.create(
+            message=data
+        )
+        warehouse.warehouser.notifications.add(notification)
         return Response(data,status=status.HTTP_200_OK)
         

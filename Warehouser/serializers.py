@@ -5,6 +5,7 @@ from Authentication.serializers import UserSerializer
 from Authentication.models import Account
 from Farming.serializers import ProductsSerializers
 from Farming.models import CoffeeProducts
+from Notifications.models import Notification
 
 class WarehouseSerializers(serializers.ModelSerializer):
     warehouser = UserSerializer(read_only=True)
@@ -34,11 +35,14 @@ class ShippingManifestSerializers(serializers.ModelSerializer):
     def save(self,id):
         product = CoffeeProducts.objects.get(id=id)
         manifest = ShippingManifest(
-            number = ShippingManifestSerializers.random_with_N_digits(10),
+            number = ShippingManifestSerializers.random_with_N_digits(8),
             product = product,
             quantity = self.validated_data['quantity'],
             warehouser = self.validated_data['warehouser']
         )
+        product_quantity = product.quantity
+        product.quantity = product_quantity - self.validated_data['quantity']
+        product.save()
         manifest.save()
         return manifest
 
