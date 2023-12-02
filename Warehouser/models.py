@@ -18,7 +18,7 @@ class Pocket(models.Model):
     product = models.ForeignKey(CoffeeProducts,on_delete=models.CASCADE) 
 
 class Warehouse(models.Model):
-    warehouser = models.OneToOneField(Account,on_delete=models.CASCADE)
+    warehouser = models.OneToOneField(Account,on_delete=models.CASCADE,null=True)
     warehoused_products = models.ManyToManyField(ShippingManifest)
     processed_products = models.ManyToManyField(ProcessedProducts)
     name = models.TextField(default="")

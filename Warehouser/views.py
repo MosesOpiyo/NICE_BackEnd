@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from cloudinary.uploader import upload
 
+from NICE_BACK.image import compress_image
 from .models import Warehouse,ShippingManifest
 from Authentication.models import Warehouser,Account
 from Authentication.serializers import UserSerializer
@@ -44,9 +45,16 @@ class WarehouseClass:
                 return Response(data,status = status.HTTP_200_OK)
         except:
             if request.user.type == "ORIGINWAREHOUSER":
-                warehouse = Warehouse.objects.select_related('warehouser').prefetch_related('warehoused_products').get(name='NICE WAREHOUSE')
-                data =  GetWarehouseSerializers(warehouse).data
-                return Response(data,status = status.HTTP_200_OK)
+                try:
+                    warehouse = Warehouse.objects.select_related('warehouser').prefetch_related('warehoused_products').get(name='NICE WAREHOUSE')
+                    data =  GetWarehouseSerializers(warehouse).data
+                    return Response(data,status = status.HTTP_200_OK)
+                except:
+                    new_warehouse = Warehouse.objects.create(
+                    name='NICE WAREHOUSE'
+                    )
+                    data = GetWarehouseSerializers(new_warehouse).data
+                    return Response(data,status = status.HTTP_200_OK)
             else:
                 new_warehouse = Warehouse.objects.create(
                    name = f"{request.user}'s Warehouse",
