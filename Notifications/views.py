@@ -53,3 +53,16 @@ class Notifications:
             None
        return Response(data="Seen",status=status.HTTP_200_OK)
     
+    @api_view(["DELETE"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def seen_notifications(message,id,request):
+      selected = request.data.get("notifications")
+      for one in selected:
+         notification = Notification.objects.get(
+            id = one.id
+         )
+         notification.delete()
+      data = "deleted"  
+      return Response(data="Seen",status=status.HTTP_200_OK)
+    
