@@ -121,6 +121,17 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'jsmcbcqt_NICE_DB',
+#         'USER': 'jsmcbcqt_jsmcbcqt',
+#         'PASSWORD': 'wr$O$Jzw?X!7',
+#         'HOST': 'localhost',
+#         'Port': '3306'
+#     }
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
