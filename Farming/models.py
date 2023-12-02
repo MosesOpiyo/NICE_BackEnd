@@ -2,6 +2,7 @@ from django.db import models
 from cloudinary.models import CloudinaryField
 from Authentication.models import Account,Farmer,Buyer
 from decouple import config
+from datetime import datetime
 
 class CoffeeProducts(models.Model):
     name = models.TextField(default="")
@@ -82,3 +83,7 @@ class Stories(models.Model):
     media = CloudinaryField("/stories")
     caption = models.TextField(default="")
     user = models.ForeignKey(Account,on_delete=models.CASCADE)
+    date_added = models.DateTimeField(default=datetime(2023, 1, 1, 12, 0, 0))
+
+    def __str__(self):
+        return str(self.id)

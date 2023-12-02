@@ -76,6 +76,26 @@ class Farming:
         except:
             data =  ""
             return Response(data,status = status.HTTP_200_OK)
+        
+    @api_view(['PUT'])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def updateProfile(request,key):
+        data_update = request.data.get(f"{key}")
+        farmer = FarmerProfile.objects.get(farmer=request.user)
+        serializer = GetProfileSerializers(farmer)
+        serialized_data = serializer.data
+        for attribute in serialized_data.keys():
+            if attribute == key:
+                serialized_data[key] = data_update
+
+        updated_serializer = GetProfileSerializers(farmer,data=serialized_data)
+        if updated_serializer.is_valid():
+            updated_serializer.save()
+        else:
+            pass
+                
+        return Response(data="Updated",status = status.HTTP_200_OK)
 
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
@@ -176,6 +196,7 @@ class Story:
                 return Response(data,status=status.HTTP_201_CREATED)
             else:
                 data = serializers.error_messages
+                print(serializers.errors)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
         elif request.method == "GET":
             stories = Stories.objects.all()

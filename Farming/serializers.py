@@ -5,8 +5,11 @@ from Authentication.models import Account
 from Authentication.serializers import UserSerializer
 from datetime import datetime
 
+from NICE_BACK.image import compress_image
 from Notifications.models import Notification
-from Authentication.models import Farmer 
+from Authentication.models import Farmer
+from PIL import Image
+from io import BytesIO
 
 class ProductsSerializers(serializers.ModelSerializer):
     class Meta:
@@ -68,32 +71,42 @@ class ProfileSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
     def save(self,request):
-        farmer = Farmer.objects.create(
-            email = self.validated_data['email'],
-            username = self.validated_data['username'],
+        farmer = Farmer.objects.get(
+            email = request.user.email,
         )
         password = binascii.hexlify(os.urandom(10)).decode('utf-8')
         farmer.set_password(password)
         profile = FarmerProfile(
             farmer = farmer,
             county = self.validated_data['county'],
+            country = self.validated_data['country'],
             wet_mill_name = self.validated_data['wet_mill_name'],
             society_name = self.validated_data['society_name'],
+            factory_chairman = self.validated_data['factory_chairman'],
             factory_manager = self.validated_data['factory_manager'],
             no_of_farmers = self.validated_data['no_of_farmers'],
+            men = self.validated_data['men'],
+            women = self.validated_data['women'],
             total_acreage = self.validated_data['total_acreage'],
             no_of_trees = self.validated_data['no_of_trees'],
             altitude = self.validated_data['altitude'],
             harvest_season = self.validated_data['harvest_season'],
             annual_rainfall_amount = self.validated_data['annual_rainfall_amount'],
             coffee_variety = self.validated_data['coffee_variety'],
+            farming_method = self.validated_data['farming_method'],
             certification_type = self.validated_data['certification_type'],
+            soil_type = self.validated_data['soil_type'],
+            processing_method = self.validated_data['processing_method'],
+            cupping_notes = self.validated_data['cupping_notes'],
             availability = self.validated_data['availability'],
+            grower_history = self.validated_data['grower_history'],
             location = self.validated_data['location'],
             farm_area = self.validated_data['farm_area']
         )
         profile.save()
         return profile
+    
+
     
 class ExcelSerializers(serializers.ModelSerializer):
     farmer = UserSerializer(read_only=True)
@@ -195,11 +208,23 @@ class ProcessedProductsSerializer(serializers.ModelSerializer):
 class StoriesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stories
-        fields = "__all__"
+        fields = ['media','caption']
+
+    def compress_image(image_file):
+            img = Image.open(image_file)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+        
+            img.thumbnail((800, 800))
+            
+            buffer = BytesIO()
+            img.save(buffer, format='JPEG')
+            return buffer.getvalue()
 
     def save(self,request):
         user = Account.objects.get(id = request.user.id)
         story = Stories(
+            user = user,
             media = self.validated_data['media'],
             caption = self.validated_data['caption']
         )
