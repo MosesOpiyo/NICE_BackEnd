@@ -4,6 +4,10 @@ import binascii,os
 from random import randint
 from Notifications.serialiazers import GetNotificationsSerializers
 
+from Orders.models import Cart
+from django.contrib.auth import authenticate
+from .tokens import create_jwt_pair_for_user
+
 class AdminRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admin
@@ -97,7 +101,14 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
         user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
         user.set_password(self.validated_data['password'])
         user.save()
-        return user
+        new_cart = Cart.objects.create(
+            buyer = user
+        )
+        new_cart.save()
+        new_user = authenticate(email=self.validated_data['email'], password=self.validated_data['password'])
+        tokens = create_jwt_pair_for_user(new_user)
+        response = {"tokens": tokens}
+        return response
     
 
 class UserSerializer(serializers.ModelSerializer):
@@ -112,6 +123,12 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = ['index','email','username','type','date_joined','last_login']
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Profile
+        fields = '__all__'
+
+class ProfilePicSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Profile

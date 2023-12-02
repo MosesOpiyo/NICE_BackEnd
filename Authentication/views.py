@@ -5,9 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
+from cloudinary.uploader import upload
 
 from Farming.models import FarmerProfile
-from Orders.models import Cart
+
 from .serializers import *
 from .models import *
 from .tokens import create_jwt_pair_for_user
@@ -19,11 +20,7 @@ def registration_view(request):
     data = {}
     if serializer.is_valid():
         account = serializer.save()
-        new_cart = Cart.objects.create(
-            buyer = account
-        )
-        new_cart.save()
-        data['response'] = f"Successfully created a buyer under {account.username} with email {account.email}"
+        data = account
         return Response(data,status = status.HTTP_201_CREATED)
     else:
         error = serializer.errors.pop('email')
@@ -92,8 +89,8 @@ def origin_warehouser_registration_view(request):
     data = {}
     if request.user:
         if serializer.is_valid():
-            account = serializer.save()  
-            data['response'] = f"Successfully created a warehouser under {account.username} with email {account.email}"
+            account = serializer.save()
+            data = account
             return Response(data,status = status.HTTP_201_CREATED)
         else:
             data = serializer.errors
@@ -139,5 +136,33 @@ def get_profile(request):
         
     else:
         return Response(data,status = status.HTTP_404_NOT_FOUND)
+    
 
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def profilePicture(request):
+    data = {}
+    image_file = request.data.get("image")
+    compressed_image = compress_image(image_file=image_file)
+    cloudinary_response = upload(compressed_image)
+    cloudinary_url = cloudinary_response['url'].replace('http://res.cloudinary.com/dlzyg12i7/', '')
+    user_profile = Profile.objects.get(user=request.user)
+    user_profile.profile_pic = cloudinary_url
+    user_profile.save()
+    data = f"{user_profile.user.username}'s profile pic has been set."
+    return Response(data,status=status.HTTP_200_OK)
 
+from PIL import Image
+from io import BytesIO
+
+def compress_image(image_file):
+        img = Image.open(image_file)
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+    
+        img.thumbnail((600, 600))
+        
+        buffer = BytesIO()
+        img.save(buffer, format='JPEG')
+        return buffer.getvalue()

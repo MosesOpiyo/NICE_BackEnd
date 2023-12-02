@@ -8,5 +8,6 @@ urlpatterns = [
     path("OriginWarehouserRegistration",views.origin_warehouser_registration_view,name="origin_warehouser"),
     path("Registration",views.registration_view,name="buyer"),
     path("Login",views.login,name='login'),
-    path("Profile",views.get_profile,name='profile')
+    path("Profile",views.get_profile,name='profile'),
+    path("ProfilePicture",views.profilePicture,name='picture'),
 ]
