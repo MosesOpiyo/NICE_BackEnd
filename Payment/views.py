@@ -8,7 +8,8 @@ from rest_framework import status as Status
 import requests
 import json
 from Farming.models import ProcessedProducts
-
+from Authentication.models import Account
+from Warehouser.models import Warehouse
 from Orders.models import Order,Cart
 from decouple import config
 from .utils import make_paypal_payment,verify_paypal_payment
@@ -42,12 +43,10 @@ import paypalrestsdk
 from django.http import HttpResponseRedirect
 
 class PaymentII:
-
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def create_payment(request,amount):
-
         paypalrestsdk.configure({
         "mode": "live",
         "client_id": config('PAYPAL_CLIENT_ID'),
@@ -67,16 +66,55 @@ class PaymentII:
                 "description": "This is the payment transaction description."}]})
 
         if payment.create():
-            print("Payment created successfully")
             cart = Cart.objects.get(buyer=request.user)
-            for item in cart.products:
-                if item.type == "Roasted":
-                    products = ProcessedProducts.objects.filter()
-                elif item.type == "Green":
-                    False
+            
+            if cart.products.count() == 1:
+                order = Order.objects.create(
+                    buyer = request.user
+                )
+                for item in cart.products.all():
+                    warehouser = Account.objects.get(index=item.code)
+                    warehouse = Warehouse.objects.get(warehouser=warehouser)
+                    order.product.add(item)
+                    order.warehouse = warehouse
+                    order.save()
+            elif cart.products.count() > 1:
+                duplicate_codes = []
+                for item in cart.products.all():
+                    if cart.products.count(item.code) > 1:
+                        duplicate_codes.append(item)
+                for item in duplicate_codes:
+                    warehouser = Account.objects.get(index=item.code)
+                    warehouse = Warehouse.objects.get(warehouser=warehouser)
+                    order = Order.objects.get(
+                            warehouser=warehouser
+                        )
+                    if order:
+                        if item.code == warehouser.index and order.product.contains(item):
+                            pass
+                        elif item.code == warehouser.index and ~order.product.contains(item):
+                            order.product.add(item) 
+                        elif item.code != warehouser.index and ~order.product.contains(item):
+                            pass
+                    else:
+                        order = Order.objects.create(
+                           buyer = request.user,
+                           warehouser=warehouser
+                        )
+                        if item.code == warehouser.index and order.product.contains(item):
+                            pass
+                        elif item.code == warehouser.index and ~order.product.contains(item):
+                            order.product.add(item) 
+                        elif item.code != warehouser.index and ~order.product.contains(item):
+                            pass
+                        
+
+                
+            print("Payment created successfully")
             for link in payment.links:
                 if link.rel == "approval_url":
                     approval_url = str(link.href)
-                    return Response(data=approval_url,status=Status.HTTP_200_OK)               
+                    return Response(data=approval_url,status=Status.HTTP_200_OK)           
         else:
             print(payment.error)
+            return Response(data=payment.error,status=Status.HTTP_400_BAD_REQUEST)  
