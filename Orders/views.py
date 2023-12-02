@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view,permission_classes,authentication_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -36,7 +36,6 @@ class ordersAndCart:
             return Response(data,status=status.HTTP_202_ACCEPTED)
         else:
             data = serializers.errors
-            print(data)
             return Response(data,status=status.HTTP_400_BAD_REQUEST)
         
     @api_view(["GET"])
@@ -80,8 +79,11 @@ class ordersAndCart:
     def getCart(request):
         data = {}
         cart = Cart.objects.get(buyer=request.user)
-        data = CartSerializers(cart).data
-        return Response(data,status=status.HTTP_200_OK)
+        try:
+            data = CartSerializers(cart).data
+            return Response(data,status=status.HTTP_200_OK)
+        except:
+            return Response(data="None",status=status.HTTP_404_NOT_FOUND) 
     
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
@@ -97,15 +99,18 @@ class ordersAndCart:
     @permission_classes([IsAuthenticated])
     def getWarehouseOrders(request):
         data = {}
-        warehouse = Warehouse.objects.get(warehouser=request.user)
-        order = Order.objects.filter(warehouse=warehouse)
-        data = OrderSerializers(order,many=True).data
-        return Response(data,status=status.HTTP_200_OK)
+        try:
+            warehouse = Warehouse.objects.get(warehouser=request.user)
+            order = Order.objects.filter(warehouse=warehouse)
+            data = OrderSerializers(order,many=True).data
+            return Response(data,status=status.HTTP_200_OK)
+        except:
+            return Response(data="None",status=status.HTTP_404_NOT_FOUND)
     
 class Products:
     @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
+    @authentication_classes([])
+    @permission_classes([AllowAny])
     def getProducts(request):
         data = {}
         products = ProcessedProducts.objects.all()
@@ -113,8 +118,8 @@ class Products:
         return Response(data,status=status.HTTP_200_OK)
     
     @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
+    @authentication_classes([])
+    @permission_classes([AllowAny])
     def getProduct(request,id):
         data = {}
         products = ProcessedProducts.objects.get(id=id)

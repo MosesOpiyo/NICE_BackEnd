@@ -22,9 +22,8 @@ class Cart(models.Model):
         return f"{self.buyer}'s Cart"
 
 class Order(models.Model):
-    buyer = models.ForeignKey(Buyer,on_delete=models.CASCADE)
-    green_product = models.ManyToManyField(CoffeeProducts)
-    processed_product = models.ManyToManyField(ProcessedProducts)
+    buyer = models.ForeignKey(Account,on_delete=models.CASCADE)
+    product = models.ManyToManyField(CartItem)
     quantity = models.IntegerField(default=0)
     warehouse = models.ForeignKey(Warehouse,on_delete=models.CASCADE,null=True)
     country = models.TextField(default="")

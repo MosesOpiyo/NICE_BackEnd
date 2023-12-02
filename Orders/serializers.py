@@ -23,7 +23,6 @@ class CartItemSerializers(serializers.ModelSerializer):
             type = "Roasted"
             )
             cart_item.save()
-            print(cart_item)
             return cart_item
         elif self.validated_data['grind'] == "None" or self.validated_data['roast_type'] == "None":
             cart_item = CartItem(
