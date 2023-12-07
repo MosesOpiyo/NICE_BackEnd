@@ -52,6 +52,7 @@ class Account(AbstractBaseUser,PermissionsMixin):
     username = models.CharField(max_length=30)
     date_joined = models.DateTimeField(verbose_name="date joined",auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="last login",auto_now=True)
+    is_confirmed = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -88,6 +89,7 @@ class AdminManager(models.Manager):
             password = password
         )
         user.set_password(password)
+        user.type = Account.Type.ADMIN
         user.save(using=self._db)
         return user
       
@@ -101,7 +103,7 @@ class Admin (Account):
     objects = AdminManager()
 
     def save(self , *args , **kwargs):
-        self.type = Account.Type.FARMER
+        self.type = Account.Type.ADMIN
         return super().save(*args , **kwargs)
 
 class FarmerManager(models.Manager):
@@ -117,6 +119,7 @@ class FarmerManager(models.Manager):
             password = password
         )
         user.set_password(password)
+        user.type = Account.Type.FARMER
         user.save(using=self._db)
         return user
       
@@ -146,6 +149,7 @@ class OriginWarehouserManager(models.Manager):
             password = password
         )
         user.set_password(password)
+        user.type = Account.Type.ORIGINWAREHOUSER
         user.save(using=self._db)
         return user
       
@@ -175,6 +179,7 @@ class WarehouserManager(models.Manager):
             password = password
         )
         user.set_password(password)
+        user.type = Account.Type.WAREHOUSER
         user.save(using=self._db)
         return user
       
@@ -204,6 +209,7 @@ class BuyerManager(models.Manager):
             password = password
         )
         user.set_password(password)
+        user.type = Account.Type.BUYER
         user.save(using=self._db)
         return user
       
@@ -243,3 +249,7 @@ class Profile(models.Model):
     def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
 
+
+class VerificationCode(models.Model):
+    user = models.OneToOneField(Account,on_delete=models.CASCADE)
+    code = models.CharField(max_length=5,default=0)

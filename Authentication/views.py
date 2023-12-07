@@ -8,6 +8,7 @@ from rest_framework import status
 from cloudinary.uploader import upload
 
 from Farming.models import FarmerProfile
+from .email import send_welcome_email
 
 from .serializers import *
 from .models import *
@@ -108,16 +109,38 @@ def login(request):
     user = authenticate(email=email, password=password)
 
     if user is not None:
+        account = Account.objects.get(id = user.id)
+        if account.is_confirmed == True:
+            tokens = create_jwt_pair_for_user(user)
 
-        tokens = create_jwt_pair_for_user(user)
-
-        response = {"tokens": tokens}
-        content = {"user": str(request.user), "auth": str(request.auth)}
-        return Response(data=response, status=status.HTTP_200_OK)
+            response = {"tokens": tokens}
+            content = {"user": str(request.user), "auth": str(request.auth)}
+            return Response(data=response, status=status.HTTP_200_OK)
+        else:
+            return Response(data="Account not Verified", status=status.HTTP_200_OK)
 
     else:
         return Response(data={"message": "Invalid email or password"})
+
     
+@api_view(['POST'])
+def Verification(request):
+    email = request.data.get("email")
+    code = request.data.get("code")
+    user = Account.objects.get(email=email)
+    if user is not None:
+        auth_code = VerificationCode.objects.get(user=user)
+        if auth_code.code == code:
+           account = Account.objects.get(email=email)
+           account.is_confirmed = True
+           account.save()
+           auth_code.delete()
+           return Response(data="Account Verified",status=status.HTTP_200_OK)
+        else:
+           auth_code.delete()   
+           return Response(data="One time code Expired",status=status.HTTP_404_NOT_FOUND)
+    else:
+        return Response(data="User not Found",status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])

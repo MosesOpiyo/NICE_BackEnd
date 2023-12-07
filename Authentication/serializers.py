@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import Admin,Farmer,Warehouser,Buyer,Account,OriginWarehouser,Profile
+from .models import *
 import binascii,os
 from random import randint
 from Notifications.serialiazers import GetNotificationsSerializers
-
+from .email import send_welcome_email
 from Orders.models import Cart
 from django.contrib.auth import authenticate
 from .tokens import create_jwt_pair_for_user
@@ -33,7 +33,7 @@ class FarmerRegistrationSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['email','password','username','index']
         extra_kwargs = {
-            'password':{'write_only':True}
+            'password':{'write_only':True},
         }
     
     def random_with_N_digits(n):
@@ -46,6 +46,12 @@ class FarmerRegistrationSerializer(serializers.ModelSerializer):
         user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
         user.set_password(self.validated_data['password'])
         user.save()
+        code = VerificationCode.objects.create(
+           user = user 
+        )
+        code.code = FarmerRegistrationSerializer.random_with_N_digits(5)
+        code.save()
+        send_welcome_email(name=user.username,receiver=user.email,code=code.code)
         return user
     
 class OriginWarehouserRegistrationSerializer(serializers.ModelSerializer):
