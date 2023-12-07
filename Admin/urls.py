@@ -10,4 +10,5 @@ urlpatterns = [
     path("ProcessedProducts",Admin. getProcessedProduct,name="products"),
     path("Requests",Admin.getProductRequest,name="requests"),
     path("deleteUser/<int:id>",Admin.deleteUser,name="delete"),
+    
 ]
