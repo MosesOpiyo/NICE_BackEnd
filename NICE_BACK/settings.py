@@ -60,6 +60,9 @@ cloudinary.config(
   api_secret = 'SXz0A7wV1NkRoDpmLN0wFi5PcRM'  
 )
 
+# Set the domain for the activation link in the email
+SITE_ID = 1
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
