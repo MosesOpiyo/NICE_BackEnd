@@ -151,7 +151,7 @@ class Processed:
         return Response(data,status = status.HTTP_200_OK)  
 
 from Admin.models import Requests
-from Admin.email import send_welcome_email
+from Authentication.email import send_welcome_email
 
 class ProductRequests:
     @api_view(['GET'])

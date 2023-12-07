@@ -53,6 +53,7 @@ class FarmerProfile(models.Model):
     county = models.TextField(default="")
     country = models.TextField(default="")
     wet_mill_name = models.TextField(default="")
+    estate_name = models.TextField(default="")
     society_name = models.TextField(default="")
     factory_chairman = models.TextField(default="")
     factory_manager = models.TextField(default="")
