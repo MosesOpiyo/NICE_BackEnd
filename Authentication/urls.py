@@ -11,4 +11,5 @@ urlpatterns = [
     path("Verification",views.Verification,name='verify'),
     path("Profile",views.get_profile,name='profile'),
     path("ProfilePicture",views.profilePicture,name='picture'),
+    path("DeleteNotifications",views.delete_notification,name='delete'),
 ]

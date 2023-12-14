@@ -78,8 +78,8 @@ class ordersAndCart:
     @permission_classes([IsAuthenticated])
     def getCart(request):
         data = {}
-        cart = Cart.objects.get(buyer=request.user)
         try:
+            cart = Cart.objects.get(buyer=request.user)
             data = CartSerializers(cart).data
             return Response(data,status=status.HTTP_200_OK)
         except:
@@ -92,6 +92,23 @@ class ordersAndCart:
         data = {}
         order = Order.objects.filter(buyer=request.user)
         data = OrderSerializers(order).data
+        return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getFarmerOrders(request):
+        data = {}
+        farmer_orders = []
+        orders = Order.objects.filter(is_fulfilled = True)
+        for order in orders:
+            for product in order.product.all():
+                if product.product.product.producer == request.user:
+                    if farmer_orders.count(order) == 0:
+                        farmer_orders.append(order)
+                    else:
+                        pass
+        data = OrderSerializers(farmer_orders,many=True).data
         return Response(data,status=status.HTTP_200_OK)
     
     @api_view(["GET"])

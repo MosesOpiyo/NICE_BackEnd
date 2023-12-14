@@ -7,6 +7,7 @@ urlpatterns = [
     path("NewOrder",ordersAndCart.newOrder,name="new_order"), 
     path("Cart",ordersAndCart.getCart,name="cart"),
     path("Orders/q=orders",ordersAndCart.getOrders,name="orders"),
+    path("FarmerOrders",ordersAndCart.getFarmerOrders,name="orders"),
     path("WarehouseOrders",ordersAndCart.getWarehouseOrders,name="orders"),
     path("Products",Products.getProducts,name="products"),
     path("Product/<int:id>",Products.getProduct,name="products")

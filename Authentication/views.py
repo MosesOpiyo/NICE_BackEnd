@@ -176,6 +176,21 @@ def profilePicture(request):
     data = f"{user_profile.user.username}'s profile pic has been set."
     return Response(data,status=status.HTTP_200_OK)
 
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def delete_notification(request):
+    data = {}
+    notifications = request.POST.getlist("notificationsList[]")
+    user = Account.objects.get(id = request.user.id)
+    for notification in notifications:
+        get_notification = Notification.objects.get(id=int(notification))
+        user.notifications.remove(get_notification)
+        get_notification.delete()
+    return Response(data="Deleted",status=status.HTTP_200_OK)
+        
+
 from PIL import Image
 from io import BytesIO
 

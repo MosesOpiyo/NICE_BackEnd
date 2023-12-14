@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Cart,Order,CartItem
 from Authentication.serializers import UserSerializer
 from Farming.models import ProcessedProducts
-from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
+from Farming.serializers import GetProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.serializers import WarehouseSerializers
 
 class CartItemSerializers(serializers.ModelSerializer):
@@ -52,7 +52,7 @@ class CartSerializers(serializers.ModelSerializer):
 
 class OrderSerializers(serializers.ModelSerializer):
     buyer = UserSerializer(read_only=True)
-    product = ProductsSerializers(read_only=True)
+    product = GetCartItemSerializers(many=True)
     warehouse = WarehouseSerializers(read_only=True)
     class Meta:
         model = Order

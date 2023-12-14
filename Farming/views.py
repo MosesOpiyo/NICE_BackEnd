@@ -74,7 +74,7 @@ class Farming:
             data =  GetProfileSerializers(profile).data
             return Response(data,status = status.HTTP_200_OK)
         except:
-            data =  ""
+            data = ""
             return Response(data,status = status.HTTP_200_OK)
         
     @api_view(['PUT'])
@@ -92,10 +92,11 @@ class Farming:
         updated_serializer = GetProfileSerializers(farmer,data=serialized_data)
         if updated_serializer.is_valid():
             updated_serializer.save()
+            return Response(data="Updated",status = status.HTTP_200_OK)
         else:
-            pass
-                
-        return Response(data="Updated",status = status.HTTP_200_OK)
+            data = updated_serializer.errors
+            print(data)   
+            return Response(data,status = status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import *
 from Authentication.models import Account
 from Authentication.serializers import UserSerializer
-from datetime import datetime
+from django.utils import timezone
 
 from NICE_BACK.image import compress_image
 from Notifications.models import Notification
@@ -41,7 +41,7 @@ class ProductsSerializers(serializers.ModelSerializer):
         notification = Notification.objects.create(
             message = "New Product has been created and registered."  
         )
-        notification.recipients.add(farmer.index)
+        farmer.notifications.add(notification)
         return product
     
 class GetProductsSerializers(serializers.ModelSerializer):
@@ -82,6 +82,7 @@ class ProfileSerializers(serializers.ModelSerializer):
             country = self.validated_data['country'],
             wet_mill_name = self.validated_data['wet_mill_name'],
             society_name = self.validated_data['society_name'],
+            estate_name = self.validated_data['estate_name'],
             factory_chairman = self.validated_data['factory_chairman'],
             factory_manager = self.validated_data['factory_manager'],
             no_of_farmers = self.validated_data['no_of_farmers'],
@@ -228,6 +229,8 @@ class StoriesSerializer(serializers.ModelSerializer):
             media = self.validated_data['media'],
             caption = self.validated_data['caption']
         )
+        story.date_added = None
+        story.date_added = timezone.now()
         story.save()
         user
         return story
