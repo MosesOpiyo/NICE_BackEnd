@@ -105,14 +105,11 @@ def origin_warehouser_registration_view(request):
 def login(request):
     email = request.data.get("email")
     password = request.data.get("password")
-
     user = authenticate(email=email, password=password)
-
     if user is not None:
         account = Account.objects.get(id = user.id)
         if account.is_confirmed == True:
             tokens = create_jwt_pair_for_user(user)
-
             response = {"tokens": tokens}
             content = {"user": str(request.user), "auth": str(request.auth)}
             return Response(data=response, status=status.HTTP_200_OK)
@@ -121,6 +118,42 @@ def login(request):
 
     else:
         return Response(data={"message": "Invalid email or password"})
+    
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def updateEmail(request):
+    email = request.user.email
+    print(request.data)
+    password = request.data.get("password")
+    new_email = request.data.get("new_email")
+    user = authenticate(email=email, password=password)
+    print(user)
+    if user is not None:
+        account = Account.objects.get(id = user.id)
+        account.email = new_email
+        account.save()
+        return Response(data="Email Updated", status=status.HTTP_200_OK)
+    else:
+        return Response(data="Incorrect Password", status=status.HTTP_401_UNAUTHORIZED)
+    
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def updatePassword(request):
+    email = request.user.email
+    password = request.data.get("password")
+    new_password = request.data.get("new_password")
+    user = authenticate(email=email, password=password)
+    if user is not None:
+        account = Account.objects.get(id = user.id)
+        account.password = None
+        account.set_password(new_password)
+        account.is_confirmed = True
+        account.save()
+        return Response(data="Password Updated", status=status.HTTP_200_OK)
+    else:
+        return Response(data="Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
 
     
 @api_view(['POST'])
