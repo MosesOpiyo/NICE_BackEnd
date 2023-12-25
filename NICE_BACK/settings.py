@@ -31,6 +31,24 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['192.168.137.195','192.168.100.11']
 
+#Firebase Congiurations
+import firebase_admin
+from firebase_admin import credentials
+
+firebase_config = {
+  "apiKey": "AIzaSyD1bFTg2b8eqFNHcpkLxBxUpquZpRpOI-4",
+ "authDomain": "hackingapi.firebaseapp.com",
+  "databaseURL": "https://hackingapi-default-rtdb.firebaseio.com",
+  "projectId": "hackingapi",
+  "storageBucket": "hackingapi.appspot.com",
+  "messagingSenderId": "388326392907",
+  "appId": "1:388326392907:web:860ef4d5defa9f1c6c39ce",
+  "measurementId": "G-B3MVBHMK6Z"
+  }
+
+cred = credentials.Certificate('firebase.json')
+firebase_admin.initialize_app(cred)
+
 
 # Application definition
 
@@ -60,8 +78,6 @@ cloudinary.config(
   api_secret = 'SXz0A7wV1NkRoDpmLN0wFi5PcRM'  
 )
 
-# Set the domain for the activation link in the email
-SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -168,7 +184,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-EMAIL_USE_TLS = True
+EMAIL_USE_SSL = True
 EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_PORT = config('EMAIL_PORT')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')

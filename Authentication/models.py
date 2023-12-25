@@ -50,6 +50,7 @@ class Account(AbstractBaseUser,PermissionsMixin):
     type = models.CharField(_("Type"),max_length=100,choices=Type.choices,default=Type.BUYER)
     email = models.EmailField(verbose_name="email",max_length=100,unique=True,null=True)
     username = models.CharField(max_length=30)
+    phone_number = models.TextField(default="")
     date_joined = models.DateTimeField(verbose_name="date joined",auto_now_add=True)
     last_login = models.DateTimeField(verbose_name="last login",auto_now=True)
     is_confirmed = models.BooleanField(default=False)

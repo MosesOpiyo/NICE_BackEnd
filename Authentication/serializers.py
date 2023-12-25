@@ -31,7 +31,7 @@ class AdminRegistrationSerializer(serializers.ModelSerializer):
 class FarmerRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['email','password','username','index']
+        fields = ['email','password','phone_number','username','index']
         extra_kwargs = {
             'password':{'write_only':True},
         }
@@ -42,7 +42,7 @@ class FarmerRegistrationSerializer(serializers.ModelSerializer):
         return randint(range_start, range_end)
 
     def save(self):
-        user = Farmer(email=self.validated_data['email'],username = self.validated_data['username'],index=FarmerRegistrationSerializer.random_with_N_digits(10))
+        user = Farmer(email=self.validated_data['email'],username = self.validated_data['username'],phone_number = self.validated_data['phone_number'],index=FarmerRegistrationSerializer.random_with_N_digits(10))
         user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
         user.set_password(self.validated_data['password'])
         user.save()
@@ -126,7 +126,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['index','email','username','type','date_joined','last_login']
+        fields = ['index','email','phone_number','username','type','date_joined','last_login']
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
