@@ -118,24 +118,49 @@ def login(request):
 
     else:
         return Response(data={"message": "Invalid email or password"})
+
+@api_view(['POST'])
+def google_signin(request):
+    email = request.data.get("email")
+    password = request.data.get("password")
+    user = authenticate(email=email, password=password)
+    if user is not None:
+        tokens = create_jwt_pair_for_user(user)
+        response = {"tokens": tokens}
+        content = {"user": str(request.user), "auth": str(request.auth)}
+        return Response(data=response, status=status.HTTP_200_OK)
+    else:
+        serializer = BuyerRegistrationSerializer(data=request.data)
+        data = {}
+        if serializer.is_valid():
+            response = serializer.save()
+            return Response(data=response, status=status.HTTP_200_OK)
+        else:
+            error = serializer.errors
+            print(error)
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+        
     
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
-def updateEmail(request):
-    email = request.user.email
-    print(request.data)
-    password = request.data.get("password")
-    new_email = request.data.get("new_email")
-    user = authenticate(email=email, password=password)
-    print(user)
-    if user is not None:
-        account = Account.objects.get(id = user.id)
-        account.email = new_email
-        account.save()
-        return Response(data="Email Updated", status=status.HTTP_200_OK)
+def updateData(request,key):
+    data_update = request.data.get(f"{key}")
+    user = Account.objects.get(id=request.user.id)
+    serializer = UserSerializer(user)
+    serialized_data = serializer.data
+    for attribute in serialized_data.keys():
+        if attribute == key:
+            serialized_data[key] = data_update
+
+    updated_serializer = UserSerializer(user,data=serialized_data)
+    if updated_serializer.is_valid():
+        updated_serializer.save()
+        return Response(data="Updated",status = status.HTTP_200_OK)
     else:
-        return Response(data="Incorrect Password", status=status.HTTP_401_UNAUTHORIZED)
+        data = updated_serializer.errors
+        print(data)   
+        return Response(data,status = status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])

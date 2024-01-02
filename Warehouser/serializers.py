@@ -54,7 +54,7 @@ class GetShippingManifestSerializers(serializers.ModelSerializer):
     
 class GetWarehouseSerializers(serializers.ModelSerializer):
     warehouser = UserSerializer(read_only=True)
-    warehoused_products = GetShippingManifestSerializers(many=True)
+    warehoused_products = GetShippingManifestSerializers(many=True,read_only=True)
     class Meta:
         model = Warehouse
         fields = ['name','warehouser','warehoused_products','location','warehouse_area_storage']

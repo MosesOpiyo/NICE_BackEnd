@@ -200,7 +200,7 @@ class Story:
                 print(serializers.errors)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
         elif request.method == "GET":
-            stories = Stories.objects.all()
+            stories = Stories.objects.filter(user=request.user)
             data = GetStoriesSerializer(stories,many=True).data
             return Response(data,status = status.HTTP_200_OK)  
 

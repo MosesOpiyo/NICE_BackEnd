@@ -118,10 +118,10 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
     
 
 class UserSerializer(serializers.ModelSerializer):
-    notifications = GetNotificationsSerializers(many=True)
+    notifications = GetNotificationsSerializers(many=True,read_only=True)
     class Meta:
         model = Account
-        fields = ['email','username','type','notifications']
+        fields = ['email','username','phone_number','type','notifications']
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:

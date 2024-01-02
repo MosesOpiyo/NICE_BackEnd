@@ -62,6 +62,27 @@ class WarehouseClass:
                 )
                 data = GetWarehouseSerializers(new_warehouse).data
                 return Response(data,status = status.HTTP_200_OK)
+            
+    @api_view(['PUT'])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def updateProfile(request,key):
+        data_update = request.data.get(f"{key}")
+        warehouse = Warehouse.objects.get(warehouser=request.user)
+        serializer = GetWarehouseSerializers(warehouse)
+        serialized_data = serializer.data
+        for attribute in serialized_data.keys():
+            if attribute == key:
+                serialized_data[key] = data_update
+
+        updated_serializer = GetWarehouseSerializers(warehouse,data=serialized_data)
+        if updated_serializer.is_valid():
+            updated_serializer.save()
+            return Response(data="Updated",status = status.HTTP_200_OK)
+        else:
+            data = updated_serializer.errors
+            print(data)   
+            return Response(data,status = status.HTTP_500_INTERNAL_SERVER_ERROR)   
     
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])
