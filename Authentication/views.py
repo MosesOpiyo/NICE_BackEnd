@@ -6,13 +6,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 from cloudinary.uploader import upload
-
-from Farming.models import FarmerProfile
-from .email import send_welcome_email
+import uuid
 
 from .serializers import *
 from .models import *
 from .tokens import create_jwt_pair_for_user
+from .email import send_forgotten_passowrd_email
     
 @api_view(['POST'])
 def registration_view(request):
@@ -21,7 +20,7 @@ def registration_view(request):
     data = {}
     if serializer.is_valid():
         account = serializer.save()
-        data = account
+        data = account['response']
         return Response(data,status = status.HTTP_201_CREATED)
     else:
         error = serializer.errors.pop('email')
@@ -107,14 +106,10 @@ def login(request):
     password = request.data.get("password")
     user = authenticate(email=email, password=password)
     if user is not None:
-        account = Account.objects.get(id = user.id)
-        if account.is_confirmed == True:
-            tokens = create_jwt_pair_for_user(user)
-            response = {"tokens": tokens}
-            content = {"user": str(request.user), "auth": str(request.auth)}
-            return Response(data=response, status=status.HTTP_200_OK)
-        else:
-            return Response(data="Account not Verified", status=status.HTTP_200_OK)
+        tokens = create_jwt_pair_for_user(user)
+        response = {"tokens": tokens}
+        content = {"user": str(request.user), "auth": str(request.auth)}
+        return Response(data=response, status=status.HTTP_200_OK)
 
     else:
         return Response(data={"message": "Invalid email or password"})
@@ -123,6 +118,7 @@ def login(request):
 def google_signin(request):
     email = request.data.get("email")
     password = request.data.get("password")
+    username = request.data.get("username")
     user = authenticate(email=email, password=password)
     if user is not None:
         tokens = create_jwt_pair_for_user(user)
@@ -134,11 +130,24 @@ def google_signin(request):
         data = {}
         if serializer.is_valid():
             response = serializer.save()
-            return Response(data=response, status=status.HTTP_200_OK)
+            data = response['response']
+            return Response(data=data, status=status.HTTP_200_OK)
         else:
             error = serializer.errors
             print(error)
             return Response(data,status=status.HTTP_400_BAD_REQUEST)
+        
+@api_view(['POST'])
+def recoverPassword(request):
+    data = {}
+    email = request.data.get('email')
+    print(email)
+    try:
+        send_forgotten_passowrd_email(email)
+        return Response(data=str(uuid.uuid4()), status=status.HTTP_200_OK)
+    except:
+        return Response(data='Error occured', status=status.HTTP_400_BAD_REQUEST)
+
         
     
 @api_view(['POST'])

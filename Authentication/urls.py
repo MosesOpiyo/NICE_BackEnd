@@ -8,6 +8,7 @@ urlpatterns = [
     path("OriginWarehouserRegistration",views.origin_warehouser_registration_view,name="origin_warehouser"),
     path("Registration",views.registration_view,name="buyer"),
     path("GoogleSignIn",views.google_signin,name="buyer_sign_in"),
+    path("PasswordRecovery",views.recoverPassword,name='password'),
     path("Login",views.login,name='login'),
     path("EditData/<str:key>",views.updateData,name='data'),
     path("ChangePassword",views.updatePassword,name='password'),

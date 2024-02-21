@@ -9,42 +9,6 @@ import smtplib
 from .elastic_email import ElasticEmailHelper
 
 
-# def send_welcome_email(name,receiver,code):
-
-
-#     # Render the email template with the context data
-    
-#     subject = "Email Verification"
-#     new_message = f"""
-#       CONGRATS {name}, YOU'RE IN!
-
-#       Welcome to Nicedirect. We are thrilled to have you. 
-#       Your email address has been verified but your account verification is in progress. 
-#       Please bear with us as this may take a short while. Verify your email address using the code sent below.
-#       Your Code is {code} 
-#     """
-#     plain_message = f"Subject: Email Verification \n\n{new_message}"
-    
-
-#     # Set the email subject, sender, recipient(s), and message content
-#     from_email = config('EMAIL_HOST_USER')
-#     recipient_list = [receiver]
-#     # email_msg = EmailMessage(subject, new_message, from_email, recipient_list)
-#     # email_msg.send()
-
-#     msg = MIMEMultipart()
-#     msg['From'] = from_email
-#     msg['To'] = receiver
-#     msg['Subject'] = subject
-
-#     msg.attach(MIMEText(new_message, 'plain'))
-
-#     server = smtplib.SMTP(config('EMAIL_HOST'),587)
-#     server.starttls()
-#     server.login(config('EMAIL_HOST_USER'),config('EMAIL_HOST_PASsWORD'))
-#     server.sendmail(from_email, receiver, msg.as_string())
-#     server.quit()
-
 def send_welcome_email(name,receiver,code):
     helper = ElasticEmailHelper()
     to_email = receiver
@@ -61,6 +25,42 @@ def send_welcome_email(name,receiver,code):
 
     # Handle the response (check for success or handle errors)
     if response['success']:
+        return Response('Email sent successfully!')
+    else:
+        return Response('Failed to send email. Error: {}'.format(response['error']))
+    
+
+def send_forgotten_passowrd_email(receiver):
+    link = 'https://nike.com'
+    helper = ElasticEmailHelper()
+    to_email = receiver
+    subject = "Password Recovery"
+    body = f"""
+      Hi,
+
+ 
+
+To reset your Nicedirectcoffee account password please\n\n go to: {link}.
+
+If you have previously requested to change your password, only the link contained in this e-mail is valid.
+
+ 
+
+If this wasn't you:
+
+Your Nicedirectcoffee account may have been compromised and you should take a few steps to make sure it is secure. To start, reset your password now. If you have not yet added 2 Steps-Verification protection to your account, we highly recommend you to activate the feature now to enhance the security of your account and prevent unauthorized access.
+
+ 
+
+Sincerely,
+
+Your Nicedirectcoffee team 
+    """
+    response = helper.send_email(to_email, subject, body)
+
+    # Handle the response (check for success or handle errors)
+    if response['success']:
+        print('success')
         return Response('Email sent successfully!')
     else:
         return Response('Failed to send email. Error: {}'.format(response['error']))

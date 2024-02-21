@@ -95,11 +95,14 @@ class WarehouserRegistrationSerializer(serializers.ModelSerializer):
         return user
     
 class BuyerRegistrationSerializer(serializers.ModelSerializer):
+    session = serializers.CharField(max_length=100)
     class Meta:
         model = Buyer
-        fields = ['email','password','username']
+        fields = ['email','password','username','session']
         extra_kwargs = {
-            'password':{'write_only':True}
+            'password':{'write_only':True},
+            'session':{'write_only':True},
+            
         }
 
     def save(self):
@@ -107,14 +110,25 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
         user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
         user.set_password(self.validated_data['password'])
         user.save()
-        new_cart = Cart.objects.create(
-            buyer = user
-        )
-        new_cart.save()
+        try:
+            user_cart = Cart.objects.get(
+            session_id = self.validated_data['session']
+            )
+            user_cart.buyer = user
+            user_cart.save()
+        except:
+            new_cart = Cart.objects.create(
+            session_id = self.validated_data['session']
+            )
+            new_cart.buyer = user
+            new_cart.save()
         new_user = authenticate(email=self.validated_data['email'], password=self.validated_data['password'])
         tokens = create_jwt_pair_for_user(new_user)
         response = {"tokens": tokens}
-        return response
+        return {
+            "user":user,
+            "response":response
+        }
     
 
 class UserSerializer(serializers.ModelSerializer):
@@ -139,3 +153,7 @@ class ProfilePicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = '__all__'
+
+class PasswordRecoverySerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=255)
+    pass_token = serializers.CharField(max_length=255)
