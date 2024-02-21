@@ -165,7 +165,8 @@ class shippedClass:
         warehouse.save()
         data = f"{manifest.product} has been added to your inventory."
         notification = Notification.objects.create(
-            message=data
+            message=data,
+            route='manifests'
         )
         warehouse.warehouser.notifications.add(notification)
         return Response(data,status=status.HTTP_200_OK)
