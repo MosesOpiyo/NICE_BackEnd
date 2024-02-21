@@ -19,6 +19,7 @@ class CoffeeProducts(models.Model):
     processing = models.TextField(default="")
     drying = models.TextField(default="")
     caffeine = models.TextField(default="")
+    species = models.TextField(default="")
     acidity = models.TextField(default="")
     date = models.DateTimeField(null=True, blank=True)
     level = models.IntegerField(default=0)

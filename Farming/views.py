@@ -23,7 +23,8 @@ class Farming:
             serializers.save(request)
             return Response(data,status=status.HTTP_201_CREATED)
         else:
-            data = serializers.error_messages
+            data = serializers.errors
+            print(data)
             return Response(data,status=status.HTTP_400_BAD_REQUEST)
         
     @api_view(["POST"])

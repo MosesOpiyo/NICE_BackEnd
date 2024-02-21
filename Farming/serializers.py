@@ -32,6 +32,7 @@ class ProductsSerializers(serializers.ModelSerializer):
                                  processing=self.validated_data['processing'],
                                  drying=self.validated_data['drying'],
                                  caffeine=self.validated_data['caffeine'],
+                                 species=self.validated_data['species'],
                                  acidity=self.validated_data['acidity'],
                                  level=self.validated_data['level'],
                                  requested_warehousing=True,
@@ -39,7 +40,8 @@ class ProductsSerializers(serializers.ModelSerializer):
                                  )
         product.save()
         notification = Notification.objects.create(
-            message = "New Product has been created and registered."  
+            message = "Your Product has been created and registered.",
+            route = 'table'  
         )
         farmer.notifications.add(notification)
         return product
@@ -197,6 +199,7 @@ class ProcessedProductsSerializer(serializers.ModelSerializer):
 
     def save(self,request,id):
         product = CoffeeProducts.objects.get(id=id)
+        farmer = product.producer
         product = ProcessedProducts(
             img = self.validated_data['img'],
             product=product,
