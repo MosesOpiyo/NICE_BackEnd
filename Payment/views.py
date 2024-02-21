@@ -7,10 +7,13 @@ from rest_framework import status as Status
 
 import requests
 import json
+from django.utils import timezone
 from Farming.models import ProcessedProducts
 from Authentication.models import Account
 from Warehouser.models import Warehouse
 from Orders.models import Order,Cart
+from .models import Payments
+from .serializers import PaymentSerializers
 from decouple import config
 from .utils import make_paypal_payment,verify_paypal_payment
 
@@ -47,6 +50,7 @@ class PaymentII:
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def create_payment(request,amount):
+        rounded_amount = round(float(amount),2)
         paypalrestsdk.configure({
         "mode": "live",
         "client_id": config('PAYPAL_CLIENT_ID'),
@@ -61,7 +65,7 @@ class PaymentII:
                 "cancel_url": "http://localhost:3000/"},
             "transactions": [{
                 "amount": {
-                    "total": amount,
+                    "total": rounded_amount,
                     "currency": "USD"},
                 "description": "This is the payment transaction description."}]})
 
@@ -77,39 +81,26 @@ class PaymentII:
                     warehouse = Warehouse.objects.get(warehouser=warehouser)
                     order.product.add(item)
                     order.warehouse = warehouse
+                    order.date = timezone.now().date()
+                    order.is_fulfilled = False
                     order.save()
             elif cart.products.count() > 1:
                 duplicate_codes = []
                 for item in cart.products.all():
-                    if cart.products.count(item.code) > 1:
+                    if item not in duplicate_codes:
                         duplicate_codes.append(item)
                 for item in duplicate_codes:
                     warehouser = Account.objects.get(index=item.code)
                     warehouse = Warehouse.objects.get(warehouser=warehouser)
-                    order = Order.objects.get(
-                            warehouser=warehouser
-                        )
-                    if order:
-                        if item.code == warehouser.index and order.product.contains(item):
-                            pass
-                        elif item.code == warehouser.index and ~order.product.contains(item):
-                            order.product.add(item) 
-                        elif item.code != warehouser.index and ~order.product.contains(item):
-                            pass
-                    else:
-                        order = Order.objects.create(
-                           buyer = request.user,
-                           warehouser=warehouser
-                        )
-                        if item.code == warehouser.index and order.product.contains(item):
-                            pass
-                        elif item.code == warehouser.index and ~order.product.contains(item):
-                            order.product.add(item) 
-                        elif item.code != warehouser.index and ~order.product.contains(item):
-                            pass
-                        
-
-                
+                order = Order.objects.create(
+                        buyer = request.user,
+                        warehouse=warehouse
+                    )
+                order.product.set(cart.products.all())
+            payment = Payments.objects.create(
+               order = order,
+               amount = amount
+            )      
             print("Payment created successfully")
             for link in payment.links:
                 if link.rel == "approval_url":
@@ -117,4 +108,22 @@ class PaymentII:
                     return Response(data=approval_url,status=Status.HTTP_200_OK)           
         else:
             print(payment.error)
-            return Response(data=payment.error,status=Status.HTTP_400_BAD_REQUEST)  
+            return Response(data=payment.error,status=Status.HTTP_400_BAD_REQUEST) 
+        
+class getPayments:
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def get_payments(request):
+        data = {}
+        farmer_payments = []
+        orders = Payments.objects.all()
+        for order in orders:
+            for product in order.order.product.all():
+                if product.product.product.producer == request.user:
+                    if order not in farmer_payments:
+                        farmer_payments.append(order)
+                    else:
+                        pass
+        data = PaymentSerializers(farmer_payments,many=True).data
+        return Response(data,status=Status.HTTP_200_OK)

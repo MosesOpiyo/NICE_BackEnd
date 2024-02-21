@@ -20,7 +20,6 @@ def make_paypal_payment(amount, currency, return_url, cancel_url):
         return False,"Failed to authenticate with PayPal API",None
 
     access_token = token_response.json()['access_token']
-    print(access_token)
 
     # Create payment payload
     payment_payload = {
@@ -43,7 +42,6 @@ def make_paypal_payment(amount, currency, return_url, cancel_url):
     }
 
     payment_response = requests.post(payment_url, data=json.dumps(payment_payload), headers=payment_headers)
-    print(payment_response.text)
     if payment_response.status_code != 201:
         return False , 'Failed to create PayPal payment.',None
 
