@@ -2,8 +2,10 @@ from django.urls import path
 from Orders.views import ordersAndCart,Products
 
 urlpatterns = [
-    path("NewProductInCart/<int:id>",ordersAndCart.addToCart,name="new_product"),
-    path("RemoveFromCart/<int:id>",ordersAndCart.removeFromCart,name="remove"),
+    path("NewProductInCart/<str:session>/<int:id>",ordersAndCart.addToCart,name="new_product"),
+    path("RemoveFromCart/<str:session>/<int:id>",ordersAndCart.removeFromCart,name="remove"),
+    path("NewProductInWishList/<str:session>/<int:id>",ordersAndCart.addToWishlist,name="new_wishlist_product"),
+    path("RemoveFromWishlist/<str:session>/<int:id>",ordersAndCart.removeFromWishlist,name="wishlist_remove"),
     path("NewOrder",ordersAndCart.newOrder,name="new_order"), 
     path("Cart",ordersAndCart.getCart,name="cart"),
     path("Orders/q=orders",ordersAndCart.getOrders,name="orders"),

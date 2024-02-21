@@ -9,45 +9,56 @@ from .serializers import CartSerializers,OrderSerializers,CartItemSerializers
 from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.models import Warehouse
+from .cart_check import createCartForAnonymousUser
+import uuid
 
 class ordersAndCart:
-    @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def removeToCart(request,id):
-        data = {}
-        product = ProcessedProducts.objects.get(id=id)
-        cart = Cart.objects.get(buyer = request.user)
-        cart.products.remove(product)
-        data = f"{product.product.name} has been removed to your cart."
-        return Response(data,status=status.HTTP_202_ACCEPTED)
-    
     @api_view(["POST"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def addToCart(request,id):
+    def addToCart(request,session,id):
         data = {}
+        print(request.data)
         serializers = CartItemSerializers(data=request.data)
         if serializers.is_valid():
             item = serializers.save(id=id)
-            cart = Cart.objects.get(buyer = request.user)
+            cart = Cart.objects.get(session_id = session)
             cart.products.add(item)
             data = f"{item.product.product.name} has been added to your cart."
             return Response(data,status=status.HTTP_202_ACCEPTED)
         else:
             data = serializers.errors
+            print(data)
             return Response(data,status=status.HTTP_400_BAD_REQUEST)
         
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
-    def removeFromCart(request,id):
+    def removeFromCart(request,session,id):
         data = {}
         item = CartItem.objects.get(id=id)
-        cart = Cart.objects.get(buyer = request.user)
+        cart = Cart.objects.get(session_id = session)
         cart.products.remove(item)
         data = f"{item.product.product.name} has been remove to your cart."
         return Response(data,status=status.HTTP_202_ACCEPTED)
+    
+    @api_view(["GET"])
+    def addToWishlist(request,session,id):
+        data = {}
+        item = ProcessedProducts.objects.get(id=id)
+        cart = Cart.objects.get(session_id = session)
+        cart.wishlist.add(item)
+        data = f"{item.product.name} has been remove to your cart."
+        return Response(data,status=status.HTTP_202_ACCEPTED)
+        
+        
+    @api_view(["GET"])
+    def removeFromWishlist(request,session,id):
+        data = {}
+        item = ProcessedProducts.objects.get(id=id)
+        cart = Cart.objects.get(session_id = session)
+        cart.wishlist.remove(item)
+        data = f"{item.product.product.name} has been remove to your wishlist."
+        return Response(data,status=status.HTTP_202_ACCEPTED)
+    
         
     @api_view(["POST"])
     @authentication_classes([JWTAuthentication])
@@ -71,19 +82,25 @@ class ordersAndCart:
         else:
             data = product_serializer.error_messages
             return Response(data,status=status.HTTP_400_BAD_REQUEST)
-        
 
     @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
     def getCart(request):
         data = {}
-        try:
-            cart = Cart.objects.get(buyer=request.user)
+        session = request.query_params.get('session')
+        if session:
+            try:
+                cart = Cart.objects.get(buyer=request.user)
+                data = CartSerializers(cart).data
+                return Response(data,status=status.HTTP_200_OK)
+            except:
+                cart = Cart.objects.get(session_id=session)
+                data = CartSerializers(cart).data
+                return Response(data,status=status.HTTP_200_OK)
+        else:
+            print("Session not detected")
+            cart = createCartForAnonymousUser(request=request)
             data = CartSerializers(cart).data
-            return Response(data,status=status.HTTP_200_OK)
-        except:
-            return Response(data="None",status=status.HTTP_404_NOT_FOUND) 
+            return Response(data,status=status.HTTP_200_OK) 
     
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
@@ -100,11 +117,11 @@ class ordersAndCart:
     def getFarmerOrders(request):
         data = {}
         farmer_orders = []
-        orders = Order.objects.filter(is_fulfilled = True)
+        orders = Order.objects.all()
         for order in orders:
             for product in order.product.all():
                 if product.product.product.producer == request.user:
-                    if farmer_orders.count(order) == 0:
+                    if order not in farmer_orders:
                         farmer_orders.append(order)
                     else:
                         pass
