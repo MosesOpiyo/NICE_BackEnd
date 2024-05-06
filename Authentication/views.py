@@ -112,7 +112,7 @@ def login(request):
         return Response(data=response, status=status.HTTP_200_OK)
 
     else:
-        return Response(data={"message": "Invalid email or password"})
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 def google_signin(request):

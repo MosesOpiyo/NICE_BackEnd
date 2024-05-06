@@ -3,9 +3,11 @@ from rest_framework.decorators import api_view,permission_classes,authentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.cache import cache
 from Authentication.models import Account
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import *
+from .redis import large_coffee_products_view,large_processed_products_view
 from Notifications.views import Notifications
 from Warehouser.models import ShippingManifest,Warehouse
 from .serializers import *
@@ -45,7 +47,7 @@ class Farming:
     @permission_classes([IsAuthenticated])
     def getProducts(request):
         data = {}
-        products = CoffeeProducts.objects.select_related('producer').filter(producer=request.user)
+        products = large_coffee_products_view
         data =  ProductsSerializers(products,many=True).data
         return Response(data,status = status.HTTP_200_OK)
     
@@ -139,7 +141,7 @@ class Processed:
     @permission_classes([IsAuthenticated])
     def getProducts(request):
         data = {}
-        products = ProcessedProducts.objects.prefetch_related('rating').select_related('product').all()
+        products = large_processed_products_view
         data = GetProcessedProductsSerializers(products,many=True).data
         return Response(data,status = status.HTTP_200_OK)  
     

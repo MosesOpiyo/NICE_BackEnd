@@ -8,6 +8,7 @@ urlpatterns = [
     path("RemoveFromWishlist/<str:session>/<int:id>",ordersAndCart.removeFromWishlist,name="wishlist_remove"),
     path("NewOrder",ordersAndCart.newOrder,name="new_order"), 
     path("Cart",ordersAndCart.getCart,name="cart"),
+    path("AuthenticatedCart",ordersAndCart.getAuthenticatedCart,name="cart"),
     path("Orders/q=orders",ordersAndCart.getOrders,name="orders"),
     path("FarmerOrders",ordersAndCart.getFarmerOrders,name="orders"),
     path("WarehouseOrders",ordersAndCart.getWarehouseOrders,name="orders"),

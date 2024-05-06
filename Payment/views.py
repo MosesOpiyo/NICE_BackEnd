@@ -5,15 +5,14 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status as Status
 
-import requests
-import json
+
 from django.utils import timezone
 from Farming.models import ProcessedProducts
 from Authentication.models import Account
 from Warehouser.models import Warehouse
 from Orders.models import Order,Cart
-from .models import Payments
-from .serializers import PaymentSerializers
+from .models import Payments,Receipt
+from .serializers import PaymentSerializers,AddressSerializers,ReceiptSerializers
 from decouple import config
 from .utils import make_paypal_payment,verify_paypal_payment
 
@@ -127,3 +126,25 @@ class getPayments:
                         pass
         data = PaymentSerializers(farmer_payments,many=True).data
         return Response(data,status=Status.HTTP_200_OK)
+    
+class ProcessingPayment:
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def newPayment(request):
+        data = {}
+        address_serializer = AddressSerializers(data=request.data)
+        new_receipt = ReceiptSerializers(data=request.data)
+        buyer = Account.objects.get(id=request.user.id)
+        if address_serializer.is_valid():
+            address = address_serializer.save()
+            if new_receipt.is_valid():
+                receipt = new_receipt.save()
+                receipt.address_info = address
+                receipt.buyer = buyer
+                receipt.save()
+
+        data = f"{receipt.buyer}'s receipt successfully created."
+        return Response(data=data,status=Status.HTTP_201_CREATED)
+
+

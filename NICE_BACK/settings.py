@@ -12,11 +12,15 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-from decouple import config
 
 import cloudinary
+# settings.py
+import os
+from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
+from decouple import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -29,11 +33,9 @@ SECRET_KEY = 'django-insecure-3&6b_c!o0n=cq298#zge2m7n18ep^5i2#8+q*eg*!b=fcrc&zh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.101','192.168.100.11']
+ALLOWED_HOSTS = ['http://localhost:4200','192.168.100.11']
 
 #Firebase Congiurations
-import firebase_admin
-from firebase_admin import credentials
 
 firebase_config = {
   "apiKey": "AIzaSyD1bFTg2b8eqFNHcpkLxBxUpquZpRpOI-4",
@@ -46,8 +48,6 @@ firebase_config = {
   "measurementId": "G-B3MVBHMK6Z"
   }
 
-cred = credentials.Certificate('firebase.json')
-firebase_admin.initialize_app(cred)
 
 
 # Application definition
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'cloudinary',
     'cloudinary_storage',
@@ -118,6 +119,9 @@ REST_FRAMEWORK = {
     ],
 }
 
+JWT_SECRET_KEY = config("JWT_SECRET")
+JWT_ALGORITHM = 'HS256'
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
@@ -150,6 +154,17 @@ DATABASES = {
 #         'Port': '3306'
 #     }
 # }
+
+CACHE = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "djngo_redis.client.DefaultClass"
+        }
+
+    }
+}
 
 
 # Password validation

@@ -38,7 +38,9 @@ class ProductsSerializers(serializers.ModelSerializer):
                                  requested_warehousing=True,
                                  shipment_successful=False
                                  )
+        product.name = product.name.upper()
         product.save()
+        
         notification = Notification.objects.create(
             message = "Your Product has been created and registered.",
             route = 'table'  
@@ -95,11 +97,13 @@ class ProfileSerializers(serializers.ModelSerializer):
             altitude = self.validated_data['altitude'],
             harvest_season = self.validated_data['harvest_season'],
             annual_rainfall_amount = self.validated_data['annual_rainfall_amount'],
-            coffee_variety = self.validated_data['coffee_variety'],
+            species = self.validated_data['species'],
+            varieties = self.validated_data['varieties'],
             farming_method = self.validated_data['farming_method'],
+            processing_method = self.validated_data['processing_method'],
+            drying_method = self.validated_data['drying_method'],
             certification_type = self.validated_data['certification_type'],
             soil_type = self.validated_data['soil_type'],
-            processing_method = self.validated_data['processing_method'],
             cupping_notes = self.validated_data['cupping_notes'],
             availability = self.validated_data['availability'],
             grower_history = self.validated_data['grower_history'],

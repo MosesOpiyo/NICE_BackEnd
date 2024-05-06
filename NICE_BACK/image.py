@@ -2,6 +2,7 @@ from django.core.files import File
 from io import BytesIO
 from PIL import Image
 
+
 def compress_image(image):
     img = Image.open(image)
     # Perform compression or other image processing here

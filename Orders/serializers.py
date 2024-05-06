@@ -42,7 +42,7 @@ class CartItemSerializers(serializers.ModelSerializer):
             quantity = 100,
             grind = "None",
             roast_type = "None",
-            code = self.validated_data['code'],
+            code = 0,
             type = "Green"
             ) 
             cart_item.save()

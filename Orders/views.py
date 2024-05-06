@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Cart,Order,CartItem
+from Authentication.models import Account
 from .serializers import CartSerializers,OrderSerializers,CartItemSerializers
 from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
@@ -16,7 +17,6 @@ class ordersAndCart:
     @api_view(["POST"])
     def addToCart(request,session,id):
         data = {}
-        print(request.data)
         serializers = CartItemSerializers(data=request.data)
         if serializers.is_valid():
             item = serializers.save(id=id)
@@ -30,8 +30,6 @@ class ordersAndCart:
             return Response(data,status=status.HTTP_400_BAD_REQUEST)
         
     @api_view(["GET"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
     def removeFromCart(request,session,id):
         data = {}
         item = CartItem.objects.get(id=id)
@@ -46,7 +44,7 @@ class ordersAndCart:
         item = ProcessedProducts.objects.get(id=id)
         cart = Cart.objects.get(session_id = session)
         cart.wishlist.add(item)
-        data = f"{item.product.name} has been remove to your cart."
+        data = f"{item.product.name} has been added to your cart."
         return Response(data,status=status.HTTP_202_ACCEPTED)
         
         
@@ -89,18 +87,37 @@ class ordersAndCart:
         session = request.query_params.get('session')
         if session:
             try:
-                cart = Cart.objects.get(buyer=request.user)
-                data = CartSerializers(cart).data
-                return Response(data,status=status.HTTP_200_OK)
-            except:
                 cart = Cart.objects.get(session_id=session)
                 data = CartSerializers(cart).data
-                return Response(data,status=status.HTTP_200_OK)
+                return Response(data,status=status.HTTP_200_OK) 
+            except:
+                cart = Cart.objects.create(session_id=session)
+                data = CartSerializers(cart).data
+                return Response(data,status=status.HTTP_200_OK)   
         else:
-            print("Session not detected")
             cart = createCartForAnonymousUser(request=request)
             data = CartSerializers(cart).data
             return Response(data,status=status.HTTP_200_OK) 
+        
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def getAuthenticatedCart(request):
+        data = {}
+        session = request.query_params.get('session')
+        cart = Cart.objects.get(session_id=session)
+        if cart.buyer:
+            data = CartSerializers(cart).data
+            return Response(data,status=status.HTTP_200_OK) 
+        else:
+            buyer = Account.objects.get(id=request.user.id)
+            cart.buyer = buyer
+            cart.save()
+            data = CartSerializers(cart).data
+            return Response(data,status=status.HTTP_200_OK)
+        
+        
+            
     
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
@@ -159,5 +176,7 @@ class Products:
         products = ProcessedProducts.objects.get(id=id)
         data = GetProcessedProductsSerializers(products).data
         return Response(data,status=status.HTTP_200_OK)
+    
+    
         
     

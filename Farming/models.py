@@ -1,7 +1,6 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
 from Authentication.models import Account,Farmer,Buyer
-from decouple import config
 from datetime import datetime
 
 class CoffeeProducts(models.Model):
@@ -66,16 +65,18 @@ class FarmerProfile(models.Model):
     altitude = models.TextField(default="")
     harvest_season = models.TextField(default="")
     annual_rainfall_amount = models.TextField(default="")
-    coffee_variety = models.TextField(default="")
-    farming_method = models.TextField(default="")
-    certification_type = models.TextField(default="")
     soil_type = models.TextField(default="")
-    processing_method = models.TextField(default="")
     cupping_notes = models.TextField(default="")
     availability = models.TextField(default="")
     grower_history = models.TextField(default="")
     location = models.TextField(default="")
     farm_area = models.IntegerField(default=0)
+    species = models.TextField(default="")
+    varieties = models.TextField(default="")
+    farming_method = models.TextField(default="")
+    processing_method = models.TextField(default="")
+    drying_method = models.TextField(default="")
+    certification_type = models.TextField(default="")
     
     def __str__(self):
         return self.farmer.username
