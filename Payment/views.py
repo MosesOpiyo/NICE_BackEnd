@@ -74,7 +74,7 @@ class ProcessingPayment:
     @permission_classes([IsAuthenticated])
     def verifyPayment(request,id):
         PAYMENT_PERIOD = 300
-        MAX_ATTEMPTS = 10
+        MAX_ATTEMPTS = 20
         DELAY_SECONDS = 120
         print("Procaessing...")
         
