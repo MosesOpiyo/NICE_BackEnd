@@ -7,10 +7,15 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from Authentication.models import Buyer,Farmer,Warehouser,Account
 from Authentication.serializers import AccountSerializer,FarmerRegistrationSerializer
+
 from Farming.models import CoffeeProducts,ProcessedProducts
 from Farming.serializers import ProcessedProductsSerializer,GetProcessedProductsSerializers
+
 from .models import Requests
 from .serializers import RequestsSerializers
+
+from Coupons.models import Coupon
+from Coupons.serializers import CouponSerializers
 
 # Create your views here.
 class Admin:
@@ -86,16 +91,22 @@ class Admin:
     @permission_classes([IsAuthenticated])
     def getProcessedProduct(request):
         data = {}
-        products = ProcessedProducts.objects.all()
-        data = GetProcessedProductsSerializers(products,many=True).data
+        processed_products = ProcessedProducts.objects.all()
+        data = GetProcessedProductsSerializers(processed_products,many=True).data
         return Response(data,status=status.HTTP_200_OK)
-
+    
     @api_view(["POST"])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
-    def addProcessedProduct(request):
+    def getProductPrice(request,id):
         data = {}
-        serializer = ProcessedProductsSerializer(data=request.data)
+        product = CoffeeProducts.objects.get(id=id)
+        product.price = request.data['price']
+        product.save()
+        data = "Price is Set"
+        return Response(data,status=status.HTTP_200_OK)
+
+    
 
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
@@ -114,6 +125,18 @@ class Admin:
         user = Account.objects.get(id=id)
         user.delete()
         data = f"user: {user.username} has been deleted."
+        return Response(data,status=status.HTTP_200_OK)
+    
+
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def newCoupon(request):
+        data = {}
+        serializer = CouponSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save() 
+            data = f"New Coupon, created."
         return Response(data,status=status.HTTP_200_OK)
 
 

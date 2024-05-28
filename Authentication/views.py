@@ -27,6 +27,22 @@ def registration_view(request):
         data = f"{error[0]}"
         print(error[0])
         return Response(data,status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def registration_by_admin_view(request):   
+    serializer = RegistrationByAdminSerializer(data=request.data)
+    data = {}
+    if serializer.is_valid():
+        account = serializer.save()
+        data = f"New Account, {account.username} created"
+        return Response(data,status = status.HTTP_201_CREATED)
+    else:
+        error = serializer.errors.pop('email')
+        data = f"{error[0]}"
+        print(error[0])
+        return Response(data,status=status.HTTP_400_BAD_REQUEST)
    
     
 @api_view(['POST'])
@@ -120,12 +136,12 @@ def google_signin(request):
     password = request.data.get("password")
     username = request.data.get("username")
     user = authenticate(email=email, password=password)
-    if user is not None:
+    try:
         tokens = create_jwt_pair_for_user(user)
         response = {"tokens": tokens}
         content = {"user": str(request.user), "auth": str(request.auth)}
         return Response(data=response, status=status.HTTP_200_OK)
-    else:
+    except:
         serializer = BuyerRegistrationSerializer(data=request.data)
         data = {}
         if serializer.is_valid():

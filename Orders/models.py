@@ -34,6 +34,7 @@ class Order(models.Model):
     country = models.TextField(default="")
     date = models.DateField(null=True,blank=True)
     marker = models.IntegerField(default=0)
+    is_paid = models.BooleanField(default=False)
     is_fulfilled = models.BooleanField(default=False)
 
     def __str__(self):

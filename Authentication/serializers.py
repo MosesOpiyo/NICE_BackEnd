@@ -1,8 +1,14 @@
-from rest_framework import serializers
-from .models import *
+import random
+import string
 import binascii,os
 from random import randint
+from rest_framework import serializers
+
+from .models import *
+
+from random import randint
 from Notifications.serialiazers import GetNotificationsSerializers
+from Coupons.serializers import GetCouponSerializers
 from .email import send_welcome_email
 from Orders.models import Cart
 from django.contrib.auth import authenticate
@@ -110,6 +116,8 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
         user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
         user.set_password(self.validated_data['password'])
         user.save()
+        coupon = Coupon.objects.get(name="First Time Purchase")
+        user.coupons.add(coupon)
         try:
             user_cart = Cart.objects.get(
             session_id = self.validated_data['session']
@@ -130,12 +138,71 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
             "response":response
         }
     
+class RegistrationByAdminSerializer(serializers.ModelSerializer):
+    account_type = serializers.CharField(write_only=True)
+    class Meta:
+        model = Account
+        fields = ['email','phone_number','username','account_type']
+
+    def random_with_N_digits(n):
+        range_start = 10**(n-1)
+        range_end = (10**n)-1
+        return randint(range_start, range_end)
+
+    def save(self):
+        print(self.validated_data)
+        if self.validated_data['account_type'] == "ORIGINWAREHOUSER":
+            user = OriginWarehouser(email=self.validated_data['email'],username = self.validated_data['username'],index=WarehouserRegistrationSerializer.random_with_N_digits(10))
+            user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
+            password = RegistrationByAdminSerializer.generate_strong_password()
+            print(password)
+            user.set_password(password)
+            user.save()
+        elif self.validated_data['account_type'] == "WAREHOUSER":
+            user = Warehouser(email=self.validated_data['email'],username = self.validated_data['username'],index=WarehouserRegistrationSerializer.random_with_N_digits(10))
+            user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
+            password = RegistrationByAdminSerializer.generate_strong_password()
+            print(password)
+            user.set_password(password)
+            user.save()
+        elif self.validated_data['account_type'] == "ADMIN":
+            user = Admin(email=self.validated_data['email'],username = self.validated_data['username'],index=WarehouserRegistrationSerializer.random_with_N_digits(10))
+            user.index = binascii.hexlify(os.urandom(5)).decode('utf-8')
+            password = RegistrationByAdminSerializer.generate_strong_password()
+            print(password)
+            user.set_password(password)
+            user.save()
+        return user
+    
+    def generate_strong_password():
+        length = 12
+        # Define character sets
+        lowercase = string.ascii_lowercase
+        uppercase = string.ascii_uppercase
+        digits = string.digits
+        special_characters = string.punctuation
+        
+        # Ensure the password has at least one character from each set
+        all_characters = [random.choice(lowercase), random.choice(uppercase), random.choice(digits), random.choice(special_characters)]
+        
+        # Fill the remaining length of the password
+        remaining_length = length - 4
+        all_characters += random.choices(lowercase + uppercase + digits + special_characters, k=remaining_length)
+        
+        # Shuffle the characters to avoid predictable sequences
+        random.shuffle(all_characters)
+        
+        # Join the list into a string and return
+        password = ''.join(all_characters)
+        return password
+    
 
 class UserSerializer(serializers.ModelSerializer):
+    coupons = GetCouponSerializers(many=True)
     notifications = GetNotificationsSerializers(many=True,read_only=True)
     class Meta:
         model = Account
-        fields = ['email','username','phone_number','type','notifications']
+        fields = ['email','username','phone_number','type','purchases','coupons','notifications']
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:

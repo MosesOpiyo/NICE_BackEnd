@@ -11,75 +11,107 @@ from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.models import Warehouse
 from .cart_check import createCartForAnonymousUser
-import uuid
 
 class ordersAndCart:
-    @api_view(["POST"])
-    def addToCart(request,session,id):
-        data = {}
-        serializers = CartItemSerializers(data=request.data)
-        if serializers.is_valid():
-            item = serializers.save(id=id)
-            cart = Cart.objects.get(session_id = session)
-            cart.products.add(item)
-            data = f"{item.product.product.name} has been added to your cart."
-            return Response(data,status=status.HTTP_202_ACCEPTED)
-        else:
-            data = serializers.errors
-            print(data)
-            return Response(data,status=status.HTTP_400_BAD_REQUEST)
-        
-    @api_view(["GET"])
-    def removeFromCart(request,session,id):
-        data = {}
-        item = CartItem.objects.get(id=id)
-        cart = Cart.objects.get(session_id = session)
-        cart.products.remove(item)
-        data = f"{item.product.product.name} has been remove to your cart."
-        return Response(data,status=status.HTTP_202_ACCEPTED)
-    
-    @api_view(["GET"])
-    def addToWishlist(request,session,id):
-        data = {}
-        item = ProcessedProducts.objects.get(id=id)
-        cart = Cart.objects.get(session_id = session)
-        cart.wishlist.add(item)
-        data = f"{item.product.name} has been added to your cart."
-        return Response(data,status=status.HTTP_202_ACCEPTED)
-        
-        
-    @api_view(["GET"])
-    def removeFromWishlist(request,session,id):
-        data = {}
-        item = ProcessedProducts.objects.get(id=id)
-        cart = Cart.objects.get(session_id = session)
-        cart.wishlist.remove(item)
-        data = f"{item.product.product.name} has been remove to your wishlist."
-        return Response(data,status=status.HTTP_202_ACCEPTED)
-    
-        
-    @api_view(["POST"])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def newOrder(request):
-        data = {}
-        product_serializer = ProductsSerializers(data=request.data)
-        if product_serializer.is_valid():
-            order = Order.objects.create(buyer=request.user)
-            if order:
-                order.product = product_serializer
-                order.save()
-                return Response(status=status.HTTP_202_ACCEPTED)
+    class Anonymous:
+        @api_view(["POST"])
+        def addToCart(request,session,id):
+            data = {}
+            serializers = CartItemSerializers(data=request.data)
+            if serializers.is_valid():
+                item = serializers.save(id=id)
+                cart = Cart.objects.get(session_id = session)
+                cart.products.add(item)
+                data = f"{item.product.product.name} has been added to your cart."
+                return Response(data,status=status.HTTP_202_ACCEPTED)
             else:
-                new_order = Order.objects.create(
-                    buyer = request.user
-                )
-                new_order = product_serializer
-                new_order.save()
-                return Response(status=status.HTTP_202_ACCEPTED)
-        else:
-            data = product_serializer.error_messages
-            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+                data = serializers.errors
+                print(data)
+                return Response(data,status=status.HTTP_400_BAD_REQUEST)
+            
+        @api_view(["GET"])
+        def removeFromCart(request,session,id):
+            data = {}
+            item = CartItem.objects.get(id=id)
+            cart = Cart.objects.get(session_id = session)
+            cart.products.remove(item)
+            data = f"{item.product.product.name} has been remove to your cart."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
+        
+        @api_view(["GET"])
+        def addToWishlist(request,session,id):
+            data = {}
+            item = ProcessedProducts.objects.get(id=id)
+            cart = Cart.objects.get(session_id = session)
+            cart.wishlist.add(item)
+            data = f"{item.product.name} has been added to your cart."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
+            
+            
+        @api_view(["GET"])
+        def removeFromWishlist(request,session,id):
+            data = {}
+            item = ProcessedProducts.objects.get(id=id)
+            cart = Cart.objects.get(session_id = session)
+            cart.wishlist.remove(item)
+            data = f"{item.product.product.name} has been remove to your wishlist."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
+    
+    class Authenticated:
+        @api_view(["POST"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def addToCart(request,id):
+            data = {}
+            serializers = CartItemSerializers(data=request.data)
+            if serializers.is_valid():
+                item = serializers.save(id=id)
+                buyer = Account.objects.get(id = request.user.id)
+                cart = Cart.objects.get(buyer = buyer)
+                cart.products.add(item)
+                data = f"{item.product.product.name} has been added to your cart."
+                return Response(data,status=status.HTTP_202_ACCEPTED)
+            else:
+                data = serializers.errors
+                print(data)
+                return Response(data,status=status.HTTP_400_BAD_REQUEST)
+            
+        @api_view(["GET"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def removeFromCart(request,id):
+            data = {}
+            item = CartItem.objects.get(id=id)
+            buyer = Account.objects.get(id = request.user.id)
+            cart = Cart.objects.get(buyer = buyer)
+            cart.products.remove(item)
+            data = f"{item.product.product.name} has been remove to your cart."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
+        
+        @api_view(["GET"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def addToWishlist(request,id):
+            data = {}
+            item = ProcessedProducts.objects.get(id=id)
+            buyer = Account.objects.get(id = request.user.id)
+            cart = Cart.objects.get(buyer = buyer)
+            cart.wishlist.add(item)
+            data = f"{item.product.name} has been added to your cart."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
+            
+            
+        @api_view(["GET"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def removeFromWishlist(request,id):
+            data = {}
+            item = ProcessedProducts.objects.get(id=id)
+            buyer = Account.objects.get(id = request.user.id)
+            cart = Cart.objects.get(buyer = buyer)
+            cart.wishlist.remove(item)
+            data = f"{item.product.product.name} has been remove to your wishlist."
+            return Response(data,status=status.HTTP_202_ACCEPTED)
 
     @api_view(["GET"])
     def getCart(request):
@@ -104,16 +136,18 @@ class ordersAndCart:
     @permission_classes([IsAuthenticated])
     def getAuthenticatedCart(request):
         data = {}
-        session = request.query_params.get('session')
-        cart = Cart.objects.get(session_id=session)
-        if cart.buyer:
+        
+        try:
+            cart = Cart.objects.get(buyer=request.user)
             data = CartSerializers(cart).data
             return Response(data,status=status.HTTP_200_OK) 
-        else:
+        except:
             buyer = Account.objects.get(id=request.user.id)
-            cart.buyer = buyer
-            cart.save()
-            data = CartSerializers(cart).data
+            new_cart = Cart.objects.create(
+              buyer = buyer
+            )
+            new_cart.save()
+            data = CartSerializers(new_cart).data
             return Response(data,status=status.HTTP_200_OK)
         
         
@@ -152,7 +186,10 @@ class ordersAndCart:
         data = {}
         try:
             warehouse = Warehouse.objects.get(warehouser=request.user)
-            order = Order.objects.filter(warehouse=warehouse)
+            order = Order.objects.filter(
+                warehouse=warehouse,
+                is_paid=True
+            )
             data = OrderSerializers(order,many=True).data
             return Response(data,status=status.HTTP_200_OK)
         except:

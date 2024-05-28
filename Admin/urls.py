@@ -7,7 +7,8 @@ urlpatterns = [
     path("AllFarmers",Admin.allFarmers,name="all_farmers"),
     path("ActiveAdmins",Admin.activeAdmins,name="active_admins"),
     path("WarehousingRequests",Admin.warehousingRequests,name="requests"),
-    path("ProcessedProducts",Admin. getProcessedProduct,name="products"),
+    path("ProcessedProducts",Admin.getProcessedProduct,name="products"),
+    path("SetPrice/<int:id>",Admin.getProductPrice,name="price"),
     path("Requests",Admin.getProductRequest,name="requests"),
     path("deleteUser/<int:id>",Admin.deleteUser,name="delete"),
     

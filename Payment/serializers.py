@@ -1,13 +1,7 @@
 from rest_framework import serializers
-from .models import Payments,Address,Receipt
-from Orders.serializers import OrderSerializers
+from .models import Address,Receipt
 
 import datetime
-class PaymentSerializers(serializers.ModelSerializer):
-    order = OrderSerializers(read_only=True)
-    class Meta:
-        model = Payments
-        fields = '__all__'
 
 class AddressSerializers(serializers.ModelSerializer):
     class Meta:

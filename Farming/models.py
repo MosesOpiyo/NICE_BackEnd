@@ -20,6 +20,7 @@ class CoffeeProducts(models.Model):
     caffeine = models.TextField(default="")
     species = models.TextField(default="")
     acidity = models.TextField(default="")
+    price = models.IntegerField(default=0)
     date = models.DateTimeField(null=True, blank=True)
     level = models.IntegerField(default=0)
     requested_warehousing = models.BooleanField(default=False)
@@ -40,7 +41,6 @@ class ProcessedProducts(models.Model):
     img = CloudinaryField( 'products')
     product = models.ForeignKey(CoffeeProducts,on_delete=models.CASCADE)
     rating = models.ManyToManyField(Ratings)
-    price = models.IntegerField(default=0)
     quantity = models.IntegerField(default=0)
     code = models.CharField(max_length=10,default="")
 

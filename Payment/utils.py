@@ -1,7 +1,8 @@
 import requests
 import json
 from decouple import config
-def make_paypal_payment(amount, currency, return_url, cancel_url):
+import paypalrestsdk
+def make_paypal_payment(receipt):
     # Set up PayPal API credentials
     client_id = config("PAYPAL_CLIENT_ID")
     secret = config("PAYPAL_SECRET")
@@ -10,6 +11,11 @@ def make_paypal_payment(amount, currency, return_url, cancel_url):
     base_url = url
     token_url = base_url + '/v1/oauth2/token'
     payment_url = base_url + '/v1/payments/payment'
+
+    currency = 'USD'
+
+    return_url = 'https://nicedirectcoffee.com/payment/paypal/success/'
+    cancel_url = 'https://nicedirectcoffee.com'
 
     # Request an access token
     token_payload = {'grant_type': 'client_credentials'}
@@ -26,7 +32,7 @@ def make_paypal_payment(amount, currency, return_url, cancel_url):
         'intent': 'sale',
         'payer': {'payment_method': 'paypal'},
         'transactions': [{
-            'amount': {'total': str(amount), 'currency': currency},
+            'amount': {'total': str(receipt.amount), 'currency': currency},
             'description': 'Vulnvision scan & protect '
         }],
         'redirect_urls': {
@@ -52,7 +58,7 @@ def make_paypal_payment(amount, currency, return_url, cancel_url):
 
 def verify_paypal_payment(payment_id):
     # Set up PayPal API credentials
-    client_id = config("PAYPAL_ID")
+    client_id = config("PAYPAL_CLIENT_ID")
     secret = config("PAYPAL_SECRET")
     url =config("PAYPAL_BASE_URL")
 

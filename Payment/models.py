@@ -33,3 +33,5 @@ class Receipt(models.Model):
     shipping_option = models.TextField(default="")
     creation_date = models.DateTimeField()
     paid = models.BooleanField(default=False)
+    order = models.OneToOneField(Order,on_delete=models.CASCADE,null=True)
+    payment_id = models.CharField(max_length=35,default="")

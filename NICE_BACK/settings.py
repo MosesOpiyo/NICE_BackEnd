@@ -35,20 +35,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['http://localhost:4200','192.168.100.11']
 
-#Firebase Congiurations
-
-firebase_config = {
-  "apiKey": "AIzaSyD1bFTg2b8eqFNHcpkLxBxUpquZpRpOI-4",
- "authDomain": "hackingapi.firebaseapp.com",
-  "databaseURL": "https://hackingapi-default-rtdb.firebaseio.com",
-  "projectId": "hackingapi",
-  "storageBucket": "hackingapi.appspot.com",
-  "messagingSenderId": "388326392907",
-  "appId": "1:388326392907:web:860ef4d5defa9f1c6c39ce",
-  "measurementId": "G-B3MVBHMK6Z"
-  }
-
-
 
 # Application definition
 
@@ -70,7 +56,8 @@ INSTALLED_APPS = [
     'Admin',
     'Orders',
     'Notifications',
-    'Payment'
+    'Payment',
+    'Coupons'
 ]
 
 cloudinary.config(
