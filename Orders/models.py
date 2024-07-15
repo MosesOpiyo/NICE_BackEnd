@@ -20,7 +20,7 @@ class Cart(models.Model):
     buyer = models.OneToOneField(Account,on_delete=models.CASCADE,null=True)
     products = models.ManyToManyField(CartItem)
     wishlist = models.ManyToManyField(ProcessedProducts)
-    session_id = models.CharField(max_length = 100,default="")
+    session_id = models.CharField(max_length = 100,default="",unique=True)
     complete = models.BooleanField(default=False)
 
     def __str__(self):

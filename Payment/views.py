@@ -93,7 +93,7 @@ class ProcessingPayment:
                 return Response(data="payment successful", status=Status.HTTP_202_ACCEPTED)
             else:
                 attempts += 1
-                print("Payment not Found")
+                print(f"Payment not Found")
                 time.sleep(DELAY_SECONDS)  # Delay before the next attempt
         receipt.delete()
         return Response({"success": False, "msg": "payment failed or cancelled after multiple attempts"}, status=Status.HTTP_400_BAD_REQUEST)

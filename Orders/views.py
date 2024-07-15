@@ -29,7 +29,7 @@ class ordersAndCart:
                 print(data)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
             
-        @api_view(["GET"])
+        @api_view(["DELETE"])
         def removeFromCart(request,session,id):
             data = {}
             item = CartItem.objects.get(id=id)
@@ -121,38 +121,25 @@ class ordersAndCart:
             try:
                 cart = Cart.objects.get(session_id=session)
                 data = CartSerializers(cart).data
-                return Response(data,status=status.HTTP_200_OK) 
+                return Response(data, status=status.HTTP_200_OK)
             except:
                 cart = Cart.objects.create(session_id=session)
                 data = CartSerializers(cart).data
-                return Response(data,status=status.HTTP_200_OK)   
+                return Response(data, status=status.HTTP_200_OK)
         else:
             cart = createCartForAnonymousUser(request=request)
             data = CartSerializers(cart).data
-            return Response(data,status=status.HTTP_200_OK) 
+            return Response(data, status=status.HTTP_200_OK)
         
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def getAuthenticatedCart(request):
         data = {}
+        cart = Cart.objects.get(buyer=request.user)
+        data = CartSerializers(cart).data
+        return Response(data,status=status.HTTP_200_OK) 
         
-        try:
-            cart = Cart.objects.get(buyer=request.user)
-            data = CartSerializers(cart).data
-            return Response(data,status=status.HTTP_200_OK) 
-        except:
-            buyer = Account.objects.get(id=request.user.id)
-            new_cart = Cart.objects.create(
-              buyer = buyer
-            )
-            new_cart.save()
-            data = CartSerializers(new_cart).data
-            return Response(data,status=status.HTTP_200_OK)
-        
-        
-            
-    
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])

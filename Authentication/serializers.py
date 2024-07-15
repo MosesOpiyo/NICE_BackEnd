@@ -122,14 +122,12 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
             user_cart = Cart.objects.get(
             session_id = self.validated_data['session']
             )
-            user_cart.buyer = user
-            user_cart.save()
         except:
-            new_cart = Cart.objects.create(
+            user_cart = Cart.objects.create(
             session_id = self.validated_data['session']
             )
-            new_cart.buyer = user
-            new_cart.save()
+        user_cart.buyer = user
+        user_cart.save
         new_user = authenticate(email=self.validated_data['email'], password=self.validated_data['password'])
         tokens = create_jwt_pair_for_user(new_user)
         response = {"tokens": tokens}
@@ -199,7 +197,7 @@ class RegistrationByAdminSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     coupons = GetCouponSerializers(many=True)
-    notifications = GetNotificationsSerializers(many=True,read_only=True)
+    notifications = GetNotificationsSerializers(many=True)
     class Meta:
         model = Account
         fields = ['email','username','phone_number','type','purchases','coupons','notifications']

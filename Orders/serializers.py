@@ -39,10 +39,11 @@ class CartItemSerializers(serializers.ModelSerializer):
         elif self.validated_data['grind'] == "None" or self.validated_data['roast_type'] == "None":
             cart_item = CartItem(
             product=product,
-            quantity = 100,
+            weight = self.validated_data['weight'],
             grind = "None",
             roast_type = "None",
-            code = 0,
+            price = self.validated_data['price'],
+            code = self.validated_data['code'],
             type = "Green"
             ) 
             cart_item.save()
@@ -52,6 +53,9 @@ class CartItemSerializers(serializers.ModelSerializer):
             )
             product.product.producer.notifications.add(notification)
             return cart_item
+        
+        
+
 
 class GetCartItemSerializers(serializers.ModelSerializer):
     product = GetProcessedProductsSerializers(read_only=True)
