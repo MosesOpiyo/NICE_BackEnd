@@ -25,6 +25,11 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"{self.buyer}'s Cart"
+    
+    def delete_unclaimed_carts():
+        carts = Cart.objects.filter(buyer__isnull=True)
+        carts.delete()
+
 
 class Order(models.Model):
     buyer = models.ForeignKey(Account,on_delete=models.CASCADE)

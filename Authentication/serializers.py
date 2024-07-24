@@ -118,16 +118,13 @@ class BuyerRegistrationSerializer(serializers.ModelSerializer):
         user.save()
         coupon = Coupon.objects.get(name="First Time Purchase")
         user.coupons.add(coupon)
+        print(self.validated_data['session'])
         try:
-            user_cart = Cart.objects.get(
-            session_id = self.validated_data['session']
-            )
-        except:
-            user_cart = Cart.objects.create(
-            session_id = self.validated_data['session']
-            )
-        user_cart.buyer = user
-        user_cart.save
+            user_cart = Cart.objects.get(session_id=self.validated_data['session'])
+            user_cart.buyer = user
+            user_cart.save()
+        except Cart.DoesNotExist:
+            pass
         new_user = authenticate(email=self.validated_data['email'], password=self.validated_data['password'])
         tokens = create_jwt_pair_for_user(new_user)
         response = {"tokens": tokens}
@@ -196,8 +193,8 @@ class RegistrationByAdminSerializer(serializers.ModelSerializer):
     
 
 class UserSerializer(serializers.ModelSerializer):
-    coupons = GetCouponSerializers(many=True)
-    notifications = GetNotificationsSerializers(many=True)
+    coupons = GetCouponSerializers(many=True,read_only=True)
+    notifications = GetNotificationsSerializers(many=True,read_only=True)
     class Meta:
         model = Account
         fields = ['email','username','phone_number','type','purchases','coupons','notifications']

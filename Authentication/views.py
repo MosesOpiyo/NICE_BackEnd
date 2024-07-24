@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -121,14 +122,16 @@ def origin_warehouser_registration_view(request):
 def login(request):
     email = request.data.get("email")
     password = request.data.get("password")
-    user = authenticate(email=email, password=password)
-    if user is not None:
-        tokens = create_jwt_pair_for_user(user)
-        response = {"tokens": tokens}
-        return Response(data=response, status=status.HTTP_200_OK)
-
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    user_exists = get_object_or_404(Account,email=email)
+    if user_exists:
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            tokens = create_jwt_pair_for_user(user)
+            response = {"tokens": tokens}
+            return Response(data=response, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    return Response(status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 def google_signin(request):

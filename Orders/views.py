@@ -138,7 +138,16 @@ class ordersAndCart:
         data = {}
         cart = Cart.objects.get(buyer=request.user)
         data = CartSerializers(cart).data
-        return Response(data,status=status.HTTP_200_OK) 
+        return Response(data,status=status.HTTP_200_OK)
+    
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def DeleteCart(request):
+        data = {}
+        Cart.delete_unclaimed_carts()
+        data =  "Deletion successful"
+        return Response(data,status=status.HTTP_200_OK)
         
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])

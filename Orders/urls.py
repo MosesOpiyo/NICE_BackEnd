@@ -10,6 +10,7 @@ urlpatterns = [
     path("RemoveFromCart/<int:id>",ordersAndCart.Authenticated.removeFromCart,name="remove"),
     path("NewProductInWishList/<int:id>",ordersAndCart.Authenticated.addToWishlist,name="new_wishlist_product"),
     path("RemoveFromWishlist/<int:id>",ordersAndCart.Authenticated.removeFromWishlist,name="wishlist_remove"),
+    path("RemoveCarts",ordersAndCart.DeleteCart,name="remove"),
     path("Cart",ordersAndCart.getCart,name="cart"),
     path("AuthenticatedCart",ordersAndCart.getAuthenticatedCart,name="cart"),
     path("Orders/q=orders",ordersAndCart.getOrders,name="orders"),

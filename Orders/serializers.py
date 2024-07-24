@@ -23,12 +23,11 @@ class CartItemSerializers(serializers.ModelSerializer):
             roast_type = self.validated_data['roast_type'],
             code = self.validated_data['code'],
             type = "Roasted",
+            subscription=self.validated_data['subscription']
             )
-            if self.validated_data['subscription'] == 'true':
-                cart_item.subscription = True
-            else:
-                cart_item.subscription = False
+            print(self.validated_data['subscription'])
             cart_item.save()
+            print(cart_item.subscription)
             notification = Notification.objects.create(
                 message = f"{product.product.name} is being processed for purchase.",
                 route = "orders"

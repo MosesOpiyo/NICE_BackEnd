@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'cloudinary',
     'cloudinary_storage',
+    'django_q',
     'Authentication',
     'Farming',
     'Warehouser',
@@ -66,6 +67,15 @@ cloudinary.config(
   api_secret = 'SXz0A7wV1NkRoDpmLN0wFi5PcRM'  
 )
 
+Q_CLUSTER = {
+    'name': 'mycluster',
+    'workers': 4,
+    'timeout': 90,
+    'retry': 500,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default'
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
