@@ -6,10 +6,19 @@ from Farming.serializers import GetProductsSerializers,GetProcessedProductsSeria
 from Warehouser.serializers import WarehouseSerializers
 from Notifications.models import Notification
 
-class CartItemSerializers(serializers.ModelSerializer):
+from Authentication.models import Account
+from Warehouser.models import Warehouse
+
+class UpdateCartItemsSerializers(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['weight','quantity','grind','roast_type','price','code','subscription',"type"]
+
+
+class CartItemSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['weight','quantity','grind','roast_type','price','code','subscription','frequency',"type"]
 
     def save(self,id):
         product = ProcessedProducts.objects.get(id=id)
@@ -23,11 +32,10 @@ class CartItemSerializers(serializers.ModelSerializer):
             roast_type = self.validated_data['roast_type'],
             code = self.validated_data['code'],
             type = "Roasted",
-            subscription=self.validated_data['subscription']
+            subscription=self.validated_data['subscription'],
+            frequency=self.validated_data['frequency']
             )
-            print(self.validated_data['subscription'])
             cart_item.save()
-            print(cart_item.subscription)
             notification = Notification.objects.create(
                 message = f"{product.product.name} is being processed for purchase.",
                 route = "orders"
@@ -43,7 +51,9 @@ class CartItemSerializers(serializers.ModelSerializer):
             roast_type = "None",
             price = self.validated_data['price'],
             code = self.validated_data['code'],
-            type = "Green"
+            type = "Green",
+            subscription=self.validated_data['subscription'],
+            frequency=self.validated_data['frequency']
             ) 
             cart_item.save()
             notification = Notification.objects.create(
@@ -78,6 +88,21 @@ class OrderSerializers(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+    def create_order(self, user):
+        cart = Cart.objects.get(buyer=user)
+        for item in cart.products:
+            warehouse = Warehouse.objects.get(processed_products = item)
+            if warehouse:
+                order = Order(
+                    buyer = user,
+                    product = cart.products,
+                    warehouse = warehouse,
+                    is_paid = True
+                )
+                order.save()
+                return order
+
 
     
 

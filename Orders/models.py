@@ -12,6 +12,7 @@ class CartItem(models.Model):
     roast_type = models.TextField(default="",null=True)
     type = models.TextField(default="")
     subscription = models.BooleanField(default=False)
+    frequency = models.TextField(default="")
     code = models.CharField(max_length=10,default="") 
     def __str__(self):
         return f"Cart Item: {self.id}"
@@ -37,7 +38,7 @@ class Order(models.Model):
     quantity = models.IntegerField(default=0)
     warehouse = models.ForeignKey(Warehouse,on_delete=models.CASCADE,null=True)
     country = models.TextField(default="")
-    date = models.DateField(null=True,blank=True)
+    date = models.DateTimeField(null=True,blank=True,auto_now=True)
     marker = models.IntegerField(default=0)
     is_paid = models.BooleanField(default=False)
     is_fulfilled = models.BooleanField(default=False)

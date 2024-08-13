@@ -3,10 +3,12 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.shortcuts import get_object_or_404
 
+import json
 from .models import Cart,Order,CartItem
 from Authentication.models import Account
-from .serializers import CartSerializers,OrderSerializers,CartItemSerializers
+from .serializers import CartSerializers,OrderSerializers,CartItemSerializers,UpdateCartItemsSerializers
 from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.models import Warehouse
@@ -75,6 +77,23 @@ class ordersAndCart:
                 data = serializers.errors
                 print(data)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
+            
+        @api_view(["PUT"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def updateCartItems(request):
+            cart_items_data = request.data.get('items')
+            cart_items_data = json.loads(cart_items_data)
+            for item_data in cart_items_data:
+                cart_item = get_object_or_404(CartItem, id=item_data['id'])
+                serializer = UpdateCartItemsSerializers(cart_item, data=item_data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"detail": "Cart items updated successfully"}, status=status.HTTP_200_OK)
+
             
         @api_view(["GET"])
         @authentication_classes([JWTAuthentication])
