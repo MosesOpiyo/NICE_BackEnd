@@ -17,10 +17,12 @@ def large_coffee_products_view(request):
 def large_processed_products_view():
     redis_cache = redis.StrictRedis(host='localhost', port=6379, db=0)
     data = redis_cache.get("processed coffee products")
+    print(data)
     
     if not data:
         # Retrieve large data from database or any source
         processed_products = ProcessedProducts.objects.prefetch_related('rating').select_related('product').all()
+        print(processed_products)
         # Store the data in Redis
         redis_cache.set("processed coffee products", processed_products)
         data = redis_cache.get("processed coffee products")

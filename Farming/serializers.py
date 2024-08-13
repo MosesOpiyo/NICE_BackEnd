@@ -54,6 +54,24 @@ class GetProductsSerializers(serializers.ModelSerializer):
         model = CoffeeProducts
         fields = '__all__'
 
+class GetProductsForShopSerializers(serializers.ModelSerializer):
+    producer = UserSerializer(read_only=True)
+    class Meta:
+        model = CoffeeProducts
+        fields = [
+            'origin',
+            'caffeine',
+            'cup_score',
+            'cup_notes',
+            'date',
+            'grade',
+            'level',
+            'name',
+            'price',
+            'processing',
+            'producer'
+        ]
+
 class RatingSerializers(serializers.ModelSerializer):
     class Meta:
         model = Ratings
@@ -249,7 +267,7 @@ class GetStoriesSerializer(serializers.ModelSerializer):
 
     
 class GetProcessedProductsSerializers(serializers.ModelSerializer):
-    product = GetProductsSerializers(read_only=True)
+    product = GetProductsForShopSerializers(read_only=True)
     rating = GetRatingSerializers(read_only=True,many=True)
 
     class Meta:

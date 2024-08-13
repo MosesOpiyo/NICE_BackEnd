@@ -1,9 +1,11 @@
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from django.contrib.auth import authenticate
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from cloudinary.uploader import upload
 import uuid
@@ -120,28 +122,38 @@ def origin_warehouser_registration_view(request):
 def login(request):
     email = request.data.get("email")
     password = request.data.get("password")
-    user = authenticate(email=email, password=password)
-    if user is not None:
-        tokens = create_jwt_pair_for_user(user)
-        response = {"tokens": tokens}
-        content = {"user": str(request.user), "auth": str(request.auth)}
-        return Response(data=response, status=status.HTTP_200_OK)
-
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    user_exists = get_object_or_404(Account,email=email)
+    if user_exists:
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            tokens = create_jwt_pair_for_user(user)
+            response = {"tokens": tokens}
+            return Response(data=response, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+    return Response(status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 def google_signin(request):
     email = request.data.get("email")
     password = request.data.get("password")
-    username = request.data.get("username")
     user = authenticate(email=email, password=password)
     try:
-        tokens = create_jwt_pair_for_user(user)
-        response = {"tokens": tokens}
-        content = {"user": str(request.user), "auth": str(request.auth)}
-        return Response(data=response, status=status.HTTP_200_OK)
-    except:
+        user = Account.objects.get(email=email)
+    except ObjectDoesNotExist:
+        user = None
+    if user:
+        user = authenticate(email=email, password=password)
+        if user:
+            try:
+                tokens = create_jwt_pair_for_user(user)
+                response = {"tokens": tokens}
+                return Response(data=response, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(data={"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(data={"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
         serializer = BuyerRegistrationSerializer(data=request.data)
         data = {}
         if serializer.is_valid():
@@ -150,8 +162,7 @@ def google_signin(request):
             return Response(data=data, status=status.HTTP_200_OK)
         else:
             error = serializer.errors
-            print(error)
-            return Response(data,status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=error,status=status.HTTP_400_BAD_REQUEST)
         
 @api_view(['POST'])
 def recoverPassword(request):

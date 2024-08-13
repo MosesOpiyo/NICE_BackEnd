@@ -6,10 +6,19 @@ from Farming.serializers import GetProductsSerializers,GetProcessedProductsSeria
 from Warehouser.serializers import WarehouseSerializers
 from Notifications.models import Notification
 
-class CartItemSerializers(serializers.ModelSerializer):
+from Authentication.models import Account
+from Warehouser.models import Warehouse
+
+class UpdateCartItemsSerializers(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['weight','quantity','grind','roast_type','price','code','subscription',"type"]
+
+
+class CartItemSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['weight','quantity','grind','roast_type','price','code','subscription','frequency',"type"]
 
     def save(self,id):
         product = ProcessedProducts.objects.get(id=id)
@@ -23,11 +32,9 @@ class CartItemSerializers(serializers.ModelSerializer):
             roast_type = self.validated_data['roast_type'],
             code = self.validated_data['code'],
             type = "Roasted",
+            subscription=self.validated_data['subscription'],
+            frequency=self.validated_data['frequency']
             )
-            if self.validated_data['subscription'] == 'true':
-                cart_item.subscription = True
-            else:
-                cart_item.subscription = False
             cart_item.save()
             notification = Notification.objects.create(
                 message = f"{product.product.name} is being processed for purchase.",
@@ -39,11 +46,14 @@ class CartItemSerializers(serializers.ModelSerializer):
         elif self.validated_data['grind'] == "None" or self.validated_data['roast_type'] == "None":
             cart_item = CartItem(
             product=product,
-            quantity = 100,
+            weight = self.validated_data['weight'],
             grind = "None",
             roast_type = "None",
-            code = 0,
-            type = "Green"
+            price = self.validated_data['price'],
+            code = self.validated_data['code'],
+            type = "Green",
+            subscription=self.validated_data['subscription'],
+            frequency=self.validated_data['frequency']
             ) 
             cart_item.save()
             notification = Notification.objects.create(
@@ -52,6 +62,9 @@ class CartItemSerializers(serializers.ModelSerializer):
             )
             product.product.producer.notifications.add(notification)
             return cart_item
+        
+        
+
 
 class GetCartItemSerializers(serializers.ModelSerializer):
     product = GetProcessedProductsSerializers(read_only=True)
@@ -75,6 +88,21 @@ class OrderSerializers(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = "__all__"
+
+    def create_order(self, user):
+        cart = Cart.objects.get(buyer=user)
+        for item in cart.products:
+            warehouse = Warehouse.objects.get(processed_products = item)
+            if warehouse:
+                order = Order(
+                    buyer = user,
+                    product = cart.products,
+                    warehouse = warehouse,
+                    is_paid = True
+                )
+                order.save()
+                return order
+
 
     
 

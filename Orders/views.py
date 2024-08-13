@@ -3,10 +3,12 @@ from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.shortcuts import get_object_or_404
 
+import json
 from .models import Cart,Order,CartItem
 from Authentication.models import Account
-from .serializers import CartSerializers,OrderSerializers,CartItemSerializers
+from .serializers import CartSerializers,OrderSerializers,CartItemSerializers,UpdateCartItemsSerializers
 from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.models import Warehouse
@@ -29,7 +31,7 @@ class ordersAndCart:
                 print(data)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
             
-        @api_view(["GET"])
+        @api_view(["DELETE"])
         def removeFromCart(request,session,id):
             data = {}
             item = CartItem.objects.get(id=id)
@@ -76,6 +78,23 @@ class ordersAndCart:
                 print(data)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
             
+        @api_view(["PUT"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def updateCartItems(request):
+            cart_items_data = request.data.get('items')
+            cart_items_data = json.loads(cart_items_data)
+            for item_data in cart_items_data:
+                cart_item = get_object_or_404(CartItem, id=item_data['id'])
+                serializer = UpdateCartItemsSerializers(cart_item, data=item_data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"detail": "Cart items updated successfully"}, status=status.HTTP_200_OK)
+
+            
         @api_view(["GET"])
         @authentication_classes([JWTAuthentication])
         @permission_classes([IsAuthenticated])
@@ -121,38 +140,34 @@ class ordersAndCart:
             try:
                 cart = Cart.objects.get(session_id=session)
                 data = CartSerializers(cart).data
-                return Response(data,status=status.HTTP_200_OK) 
+                return Response(data, status=status.HTTP_200_OK)
             except:
                 cart = Cart.objects.create(session_id=session)
                 data = CartSerializers(cart).data
-                return Response(data,status=status.HTTP_200_OK)   
+                return Response(data, status=status.HTTP_200_OK)
         else:
             cart = createCartForAnonymousUser(request=request)
             data = CartSerializers(cart).data
-            return Response(data,status=status.HTTP_200_OK) 
+            return Response(data, status=status.HTTP_200_OK)
         
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
     def getAuthenticatedCart(request):
         data = {}
-        
-        try:
-            cart = Cart.objects.get(buyer=request.user)
-            data = CartSerializers(cart).data
-            return Response(data,status=status.HTTP_200_OK) 
-        except:
-            buyer = Account.objects.get(id=request.user.id)
-            new_cart = Cart.objects.create(
-              buyer = buyer
-            )
-            new_cart.save()
-            data = CartSerializers(new_cart).data
-            return Response(data,status=status.HTTP_200_OK)
-        
-        
-            
+        cart = Cart.objects.get(buyer=request.user)
+        data = CartSerializers(cart).data
+        return Response(data,status=status.HTTP_200_OK)
     
+    @api_view(["GET"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def DeleteCart(request):
+        data = {}
+        Cart.delete_unclaimed_carts()
+        data =  "Deletion successful"
+        return Response(data,status=status.HTTP_200_OK)
+        
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
     @permission_classes([IsAuthenticated])
