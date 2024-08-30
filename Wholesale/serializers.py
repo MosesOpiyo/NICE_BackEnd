@@ -27,6 +27,8 @@ class WholesaleSerializers(serializers.ModelSerializer):
             more_about_the_business = self.validated_data['more_about_the_business']
         )
         wholesale.save()
+        user.is_wholesaler = True
+        user.save()
         return wholesale
 
     
