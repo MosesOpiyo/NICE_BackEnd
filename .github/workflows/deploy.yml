@@ -22,7 +22,6 @@ jobs:
         run: |
           python -m venv venv  # Set up a virtual environment in GitHub Actions
           source venv/bin/activate
-          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run migrations and collect static files remotely
