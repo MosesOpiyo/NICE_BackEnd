@@ -11,33 +11,9 @@ from Authentication.models import Account
 from Orders.models import Order,Cart
 from Orders.serializers import OrderSerializers
 from .models import Receipt
-from .serializers import AddressSerializers,ReceiptSerializers
+from .serializers import AddressSerializers,ReceiptSerializers,SubscriptionSerializer
 from decouple import config
 from .utils import make_paypal_payment,verify_paypal_payment
-
-class Payment:
-    @api_view(['GET'])
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def createPayment(self,amount):
-        data = {}
-        amount=amount
-        status,payment_id,approved_url=make_paypal_payment(amount=amount)
-        if status:
-            return Response(data={"success":True,"msg":"payment link has been successfully created","approved_url":approved_url},status=201)
-        else:
-            return Response(data={"success":False,"msg":"Authentication or payment failed"},status=Status.HTTP_202_ACCEPTED)
-    
-    @authentication_classes([JWTAuthentication])
-    @permission_classes([IsAuthenticated])
-    def validatePayment(self, request, *args, **kwargs):
-        data = {}
-        payment_id=request.data.get("payment_id")
-        payment_status=verify_paypal_payment(payment_id=payment_id)
-        if payment_status:  
-            return Response(data="payment improved",status=Status.HTTP_202_ACCEPTED)
-        else:
-            return Response({"success":False,"msg":"payment failed or cancelled"},status=Status.HTTP_400_BAD_REQUEST)
             
 class ProcessingPayment:
     @api_view(["POST"])
@@ -98,3 +74,4 @@ class ProcessingPayment:
                 time.sleep(DELAY_SECONDS)  # Delay before the next attempt
         receipt.delete()
         return Response({"success": False, "msg": "payment failed or cancelled after multiple attempts"}, status=Status.HTTP_400_BAD_REQUEST)
+        

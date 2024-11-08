@@ -1,7 +1,10 @@
 import requests
 import json
 from decouple import config
-import paypalrestsdk
+from paypalrestsdk import Payment
+
+from .models import Subscription
+
 def make_paypal_payment(receipt):
     # Set up PayPal API credentials
     client_id = config("PAYPAL_CLIENT_ID")
@@ -99,3 +102,41 @@ def verify_paypal_payment(payment_id):
     else:
         # Payment failed or was canceled
         return False
+    
+def create_subscription(request, id):
+    plan = Subscription.objects.get(id=id)
+
+    payment = Payment({
+        "intent": "sale",
+        "payer": {
+            "payment_method": "paypal"
+        },
+        "redirect_urls": {
+            "return_url": request.build_absolute_uri('/subscription/execute/'),
+            "cancel_url": request.build_absolute_uri('/subscription/cancel/')
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [{
+                    "name": f"{plan.user.username} - {plan.start_date}",
+                    "sku": f"plan_{plan.id}",
+                    "price": str(plan.amount),
+                    "currency": "USD",
+                    "quantity": 1
+                }]
+            },
+            "amount": {
+                "total": str(plan.amount),
+                "currency": "USD"
+            },
+            "description": f"Subscription to {plan.user.username} - {plan.start_date}"
+        }]
+    })
+
+    if payment.create():
+        for link in payment.links:
+            if link.rel == "approval_url":
+                approval_url = str(link.href)
+                return approval_url
+    else:
+        return payment.error
