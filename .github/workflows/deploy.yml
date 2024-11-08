@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          source venv/bin/activate
+          source /virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
           pip install -r requirements.txt
 
       - name: Run Migrations
@@ -30,7 +30,7 @@ jobs:
 
       - name: Collect Static Files
         run: |
-          source venv/bin/activate
+          source /virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
           python manage.py collectstatic --noinput
 
       - name: Deploy via FTP/SFTP
