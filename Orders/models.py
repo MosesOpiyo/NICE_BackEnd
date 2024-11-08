@@ -17,9 +17,19 @@ class CartItem(models.Model):
     def __str__(self):
         return f"Cart Item: {self.id}"
 
+class Sample(models.Model):
+    product = models.ForeignKey(ProcessedProducts,on_delete=models.CASCADE)
+    weight = models.CharField(max_length=100,default='',null=True)
+    quantity = models.IntegerField(default=0,null=True)
+    price = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.product} Sample"
+
 class Cart(models.Model):
     buyer = models.OneToOneField(Account,on_delete=models.CASCADE,null=True)
     products = models.ManyToManyField(CartItem)
+    samples = models.ManyToManyField(Sample)
     wishlist = models.ManyToManyField(ProcessedProducts)
     session_id = models.CharField(max_length = 100,default="",unique=True)
     complete = models.BooleanField(default=False)
