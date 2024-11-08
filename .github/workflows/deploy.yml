@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          source NICE/bin/activate
+          source venv/bin/activate
           pip install -r requirements.txt
 
       - name: Run Migrations
@@ -30,7 +30,7 @@ jobs:
 
       - name: Collect Static Files
         run: |
-          source NICE/bin/activate
+          source venv/bin/activate
           python manage.py collectstatic --noinput
 
       - name: Deploy via FTP/SFTP
