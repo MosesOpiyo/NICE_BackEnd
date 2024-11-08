@@ -32,7 +32,7 @@ jobs:
           server: ${{ secrets.DJANGO_SERVER }}
           username: ${{ secrets.DJANGO_USERNAME }}
           password: ${{ secrets.DJANGO_PASSWORD }}
-          protocol: sftp
+          protocol: ftps
           local-dir: ./
           server-dir: /NiceDirectCoffeeAPI/
           exclude: |
