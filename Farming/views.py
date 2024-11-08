@@ -128,13 +128,12 @@ class Processed:
         serializers = RatingSerializers(data=request.data)
         product = ProcessedProducts.objects.prefetch_related('rating').select_related('product').get(id=id)
         if serializers.is_valid():
-            rating = serializers.save(request)
-            product.rating.add(rating)
-            product.save()
+            serializers.save(request,id)
             return Response(data,status=status.HTTP_201_CREATED)
         else:
             data = serializers.error_messages
-            Response(data,status=status.HTTP_400_BAD_REQUEST)
+            print(data)
+            return Response(data,status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
     @authentication_classes([JWTAuthentication])

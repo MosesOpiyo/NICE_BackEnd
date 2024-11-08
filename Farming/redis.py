@@ -21,7 +21,7 @@ def large_processed_products_view():
     
     if not data:
         # Retrieve large data from database or any source
-        processed_products = ProcessedProducts.objects.prefetch_related('rating').select_related('product').all()
+        processed_products = ProcessedProducts.objects.prefetch_related('rating').select_related('product').filter(pricing__isnull=False).distinct()
         print(processed_products)
         # Store the data in Redis
         redis_cache.set("processed coffee products", processed_products)

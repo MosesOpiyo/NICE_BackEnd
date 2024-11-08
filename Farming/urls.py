@@ -11,6 +11,7 @@ urlpatterns = [
     path("ShippingProduct",Farming.getShippingProducts,name="shipping_products"),
     path("getProducts",Processed.getProducts,name="products"),
     path("getProduct/<int:id>",Processed.getProduct,name="product"),
+    path("ProductRating/<int:id>",Processed.productRating,name="product_rating"),
     path("ProductRequest",ProductRequests.request,name="product_request"),
     path("Story",Story.newStory,name="story"),
     path("ProfileUpdate/<str:key>",Farming.updateProfile,name="story"),

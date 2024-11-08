@@ -1,6 +1,7 @@
 from django.db import models
 from cloudinary.models import CloudinaryField
-from Authentication.models import Account,Farmer,Buyer
+from Authentication.models import Account,Buyer
+from Pricing.models import Option
 from datetime import datetime
 
 class CoffeeProducts(models.Model):
@@ -43,6 +44,7 @@ class ProcessedProducts(models.Model):
     rating = models.ManyToManyField(Ratings)
     quantity = models.IntegerField(default=0)
     code = models.CharField(max_length=10,default="")
+    pricing = models.ManyToManyField(Option)
 
     def __str__(self):
         return self.product.name
