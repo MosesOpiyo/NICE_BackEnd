@@ -20,10 +20,6 @@ jobs:
 
       - name: Install dependencies locally
         run: |
-          python -m venv venv  # Set up a virtual environment in GitHub Actions
-          source venv/bin/activate
-          pip install --upgrade pip setuptools wheel
-          pip install cython
           pip install -r requirements.txt
 
       - name: Deploy via FTP/SFTP
@@ -36,8 +32,8 @@ jobs:
           local-dir: ./
           server-dir: /NiceDirectCoffeeAPI/
           exclude: |
+            venv
             .git
             __pycache__
-            venv
-            .github
+            staticfile
           dangerous-clean-slate: false
