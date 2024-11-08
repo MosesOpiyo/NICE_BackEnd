@@ -33,32 +33,34 @@ SECRET_KEY = 'django-insecure-3&6b_c!o0n=cq298#zge2m7n18ep^5i2#8+q*eg*!b=fcrc&zh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['http://localhost:4200','192.168.100.172','127.0.0.1']
+ALLOWED_HOSTS = ['http://localhost:4200','192.168.100.11','api.nicedirectcoffee.com','nicedirectcoffee.com']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'cloudinary',
+    'cloudinary_storage',
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
     'rest_framework',
     'rest_framework_simplejwt',
-    'corsheaders',
-    'cloudinary',
-    'cloudinary_storage',
-    'django_q',
-    'Authentication',
-    'Farming',
-    'Warehouser',
     'Admin',
-    'Orders',
+    'Authentication',
+    'Coupons',
+    'Farming',
     'Notifications',
     'Payment',
-    'Coupons'
+    'Pricing',
+    'Orders',
+    'Warehouser',
+    'Wholesale',
 ]
 
 cloudinary.config(
