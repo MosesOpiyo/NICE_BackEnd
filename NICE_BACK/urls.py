@@ -21,8 +21,10 @@ urlpatterns = [
     path('Authentication/', include("Authentication.urls")),
     path('Farmers/', include("Farming.urls")),
     path('Warehouse/', include("Warehouser.urls")),
+    path('WholeSale/', include("Wholesale.urls")),
     path('Orders&Cart/', include("Orders.urls")),
     path('Administration/', include("Admin.urls")),
     path('Notifications/', include("Notifications.urls")),
     path('Payment/', include("Payment.urls")),
+    path('Pricing/', include("Pricing.urls")),
 ]

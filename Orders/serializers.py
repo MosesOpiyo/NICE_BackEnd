@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Cart,Order,CartItem
+from .models import Cart,Order,CartItem,Sample
 from Authentication.serializers import UserSerializer
 from Farming.models import ProcessedProducts
 from Farming.serializers import GetProductsSerializers,GetProcessedProductsSerializers
@@ -13,6 +13,29 @@ class UpdateCartItemsSerializers(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['weight','quantity','grind','roast_type','price','code','subscription',"type"]
+
+class SampleSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = ['weight','quantity','price']
+
+    def save(self,id):
+        product = ProcessedProducts.objects.get(id=id)
+        sample = Sample(
+            weight = self.validated_data['weight'],
+            quantity = self.validated_data['quantity'],
+            price = self.validated_data['price']
+        )
+        sample.product = product
+        sample.save()
+        return sample
+
+class GetSampleSerializer(serializers.ModelSerializer):
+    product = GetProcessedProductsSerializers(read_only=True)
+    class Meta:
+        model = Sample
+        fields = "__all__"
+
 
 
 class CartItemSerializers(serializers.ModelSerializer):
@@ -75,6 +98,7 @@ class GetCartItemSerializers(serializers.ModelSerializer):
 class CartSerializers(serializers.ModelSerializer):
     products = GetCartItemSerializers(many=True)
     wishlist = GetProcessedProductsSerializers(many=True)
+    samples = GetSampleSerializer(many=True)
     buyer = UserSerializer(read_only=True)
     class Meta:
         model = Cart

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Address,Receipt
+from .models import Address,Receipt,Subscription
 
 import datetime
 
@@ -36,4 +36,14 @@ class ReceiptSerializers(serializers.ModelSerializer):
         )
         new_receipt.save()
         return new_receipt
+    
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = "__all__"
+
+    def save():
+        return 
+        
 

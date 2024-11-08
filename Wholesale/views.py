@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import WholesaleEnterprise
-from .serializers import GetWholeSaleSerailzers,WholesaleSerializers
+from .serializers import GetWholeSaleSerailzers,WholesaleSerializers,NewWholesaleSerializers
 
 class Wholesale:
     @api_view(["POST"])
@@ -14,13 +14,31 @@ class Wholesale:
     @permission_classes([IsAuthenticated])
     def new_whole_enterprise(request):
         data = {}
-        serializers = WholesaleSerializers(data = request.data)
+        serializers = NewWholesaleSerializers(data = request.data)
+        
         if serializers.is_valid():
-            enterprise = serializers.save()
+            enterprise = serializers.save(request=request)
             data = f"New Wholesale Enterprise, {enterprise.business_name} Created"
             return Response(data=data,status=status.HTTP_201_CREATED)
         else:
             data = serializers.error_messages
+            print(data)
+            return Response(data=data,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def established_whole_enterprise(request):
+        data = {}
+        serializers = WholesaleSerializers(data = request.data)
+        
+        if serializers.is_valid():
+            enterprise = serializers.save(request=request)
+            data = f"New Wholesale Enterprise, {enterprise.business_name} Created"
+            return Response(data=data,status=status.HTTP_201_CREATED)
+        else:
+            data = serializers.error_messages
+            print(data)
             return Response(data=data,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @api_view(["GET"])

@@ -131,6 +131,27 @@ class ProfileSerializers(serializers.ModelSerializer):
         profile.save()
         return profile
     
+class RatingSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Ratings
+        fields = ['rating','comment']
+
+    def save(self,request,id):
+        buyer = Buyer.objects.get(
+            id = request.user.id,
+        )
+        rating = Ratings(
+            rating = self.validated_data['rating'],
+            comment = self.validated_data['comment']
+        )
+        rating.user = buyer
+        rating.save()
+        product = ProcessedProducts.objects.get(
+            id = id
+        )
+        product.rating.add(rating)
+        product.save()
+        return rating
 
     
 class ExcelSerializers(serializers.ModelSerializer):
@@ -265,9 +286,14 @@ class GetStoriesSerializer(serializers.ModelSerializer):
         model = Stories
         fields = "__all__"
 
-    
+class GetPricingSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Option
+        fields = '__all__'
+
 class GetProcessedProductsSerializers(serializers.ModelSerializer):
     product = GetProductsForShopSerializers(read_only=True)
+    pricing = GetPricingSerializers(read_only=True,many=True)
     rating = GetRatingSerializers(read_only=True,many=True)
 
     class Meta:
