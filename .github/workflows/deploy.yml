@@ -18,20 +18,29 @@ jobs:
         with:
           python-version: '3.11'  # Match your Django project’s Python version
 
-      - name: Install dependencies
+      - name: Install dependencies locally
         run: |
-          source /home/jsmcbcqt/virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
+          python -m venv venv  # Set up a virtual environment in GitHub Actions
+          source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Run Migrations
+      - name: Run migrations and collect static files remotely
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
-          python manage.py makemigrations
-          python manage.py migrate
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.DJANGO_SERVER }} >> ~/.ssh/known_hosts
 
-      - name: Collect Static Files
-        run: |
-          source /home/jsmcbcqt/virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
-          python manage.py collectstatic --noinput
+          # SSH into the server, activate the virtualenv, and run Django commands
+          ssh ${{ secrets.DJANGO_USERNAME }}@${{ secrets.DJANGO_SERVER }} << EOF
+            source /home/jsmcbcqt/virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
+            cd /NiceDirectCoffeeAPI/
+            python manage.py makemigrations
+            python manage.py migrate
+            python manage.py collectstatic --noinput
+          EOF
 
       - name: Deploy via FTP/SFTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
@@ -45,6 +54,6 @@ jobs:
           exclude: |
             .git
             __pycache__
-            NICE
-            staticfiles  # Or any specific folders to exclude
+            venv
+            .github
           dangerous-clean-slate: false
