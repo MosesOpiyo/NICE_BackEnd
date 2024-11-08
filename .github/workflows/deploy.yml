@@ -26,23 +26,26 @@ jobs:
           pip install cython
           pip install -r requirements.txt
 
-      - name: Run migrations and collect static files remotely
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+      - name: Configure SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.DJANGO_SERVER }} >> ~/.ssh/known_hosts
-
-          # SSH into the server, activate the virtualenv, and run Django commands
-          ssh ${{ secrets.DJANGO_USERNAME }}@${{ secrets.DJANGO_SERVER }} << EOF
-            source /home/jsmcbcqt/virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
-            cd /NiceDirectCoffeeAPI/
-            python manage.py makemigrations
-            python manage.py migrate
-            python manage.py collectstatic --noinput
-          EOF
+            mkdir -p ~/.ssh
+            printf "%s" "$SSH_KEY" > ~/.ssh/id_rsa  # Use printf for exact content
+            chmod 700 ~/.ssh  # Set correct permissions for .ssh directory
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H <your_server_ip_or_hostname> >> ~/.ssh/known_hosts
+        
+      - name: Run Django Commands on Server
+        run: |
+            ssh <your_username>@<your_server_ip_or_hostname> << 'EOF'
+              source /home/<your_username>/virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate
+              cd /NiceDirectCoffeeAPI/
+              python manage.py makemigrations
+              python manage.py migrate
+              python manage.py collectstatic --noinput
+            EOF
+        shell: /usr/bin/bash -e {0}
+        env:
+            SSH_KEY: ${{ secrets.SSH_KEY }}
 
       - name: Deploy via FTP/SFTP
         uses: SamKirkland/FTP-Deploy-Action@4.3.0
