@@ -1,39 +1,44 @@
-name: Deploy Django Project to Server
+name: Deploy Django API to cPanel
 
 on:
   push:
     branches:
-      - ft-development  # Trigger deployment on this branch
+      - main  # or your deployment branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
         with:
-          python-version: '3.11'  # Match your Django project’s Python version
+          ssh-private-key: ${{ secrets.CPANEL_SSH_KEY }}
 
-      - name: Install dependencies locally
+      - name: Sync files with cPanel
+        env:
+          USER: ${{ secrets.CPANEL_USER }}
+          HOST: ${{ secrets.CPANEL_HOST }}
+          PROJECT_PATH: ${{ secrets.CPANEL_PROJECT_PATH }}
         run: |
-          pip install -r requirements.txt
+          rsync -avz --exclude '__pycache__' \
+                     --exclude '.git' \
+                     --exclude '.github' \
+                     -e "ssh -o StrictHostKeyChecking=no" \
+                     ./ $USER@$HOST:$PROJECT_PATH
 
-      - name: Deploy via FTP/SFTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
-        with:
-          server: ${{ secrets.DJANGO_SERVER }}
-          username: ${{ secrets.DJANGO_USERNAME }}
-          password: ${{ secrets.DJANGO_PASSWORD }}
-          protocol: ftps
-          local-dir: ./
-          server-dir: /NiceDirectCoffeeAPI/
-          exclude: |
-            venv
-            .git
-            __pycache__
-            staticfile
-          dangerous-clean-slate: false
+      - name: Run Migrations and Restart Server
+        env:
+          USER: ${{ secrets.CPANEL_USER }}
+          HOST: ${{ secrets.CPANEL_HOST }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+          source $HOME/virtualenv/python3.8/bin/activate  # Adjust if needed
+          cd $PROJECT_PATH
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+          # Add your server restart command here, if needed
+          EOF
