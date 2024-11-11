@@ -27,7 +27,7 @@ jobs:
           rsync -avz --exclude '__pycache__' \
                      --exclude '.git' \
                      --exclude '.github' \
-                     -e "ssh -o StrictHostKeyChecking=no" \
+                     -e "ssh -p 2222 -o StrictHostKeyChecking=no" \
                      ./ $USER@$HOST:$PROJECT_PATH
 
       - name: Run Migrations and Restart Server
@@ -35,7 +35,7 @@ jobs:
           USER: ${{ secrets.CPANEL_USER }}
           HOST: ${{ secrets.CPANEL_HOST }}
         run: |
-          ssh -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
+          ssh -p 2222 -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
           source $HOME/virtualenv/python3.8/bin/activate  # Adjust if needed
           cd $PROJECT_PATH
           python manage.py migrate
