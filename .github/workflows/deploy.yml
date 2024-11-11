@@ -3,7 +3,7 @@ name: Deploy Django API to cPanel
 on:
   push:
     branches:
-      - main  # or your deployment branch
+      - ft-development  # or your deployment branch
 
 jobs:
   deploy:
