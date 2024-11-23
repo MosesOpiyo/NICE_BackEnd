@@ -1,0 +1,52 @@
+name: Deploy Django to cPanel via FTP
+
+on:
+  push:
+    branches:
+      - ft-development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.CPANEL_FTP_SERVER }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /NiceDirectCoffeeAPI/
+          exclude: |
+            .git/
+            NICE/
+            *.pyc
+            __pycache__/
+            .env
+          dangerous-clean-slate: true
+
+      - name: Run database migrations via SSH
+        if: success()
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.CPANEL_SSH_HOST }}
+          username: ${{ secrets.CPANEL_SSH_USERNAME }}
+          password: ${{ secrets.CPANEL_SSH_PASSWORD }}
+          script: |
+            source /home/jsmcbcqt/virtualenv/NiceDirectCoffeeAPI/3.10/bin/activate && cd /home/jsmcbcqt/NiceDirectCoffeeAPI
+            python manage.py makemigrations
+            python manage.py migrate
