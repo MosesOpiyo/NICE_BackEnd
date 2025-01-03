@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 import json
 from .models import Cart,Order,CartItem,Sample
 from Authentication.models import Account
-from .serializers import CartSerializers,OrderSerializers,CartItemSerializers,UpdateCartItemsSerializers,SampleSerializers
+from .serializers import CartSerializers,GetOrderSerializers,OrderSerializer,CartItemSerializers,UpdateCartItemsSerializers,SampleSerializers
 from Farming.models import ProcessedProducts
 from Farming.serializers import ProductsSerializers,GetProcessedProductsSerializers
 from Warehouser.models import Warehouse
@@ -195,6 +195,77 @@ class ordersAndCart:
         @api_view(["POST"])
         @authentication_classes([JWTAuthentication])
         @permission_classes([IsAuthenticated])
+        def buyNow(request,id):
+            data = {}
+
+            delivery_data = json.loads(request.data.get('delivery'))
+            payment_data = json.loads(request.data.get('payment'))
+            billing_data = json.loads(request.data.get('billing'))
+            product_data = json.loads(request.data.get('product'))
+
+            form_data = {
+                'delivery': delivery_data,
+                'payment': payment_data,
+                'billing': billing_data,
+                'product':product_data
+
+            }
+            serializers = OrderSerializer(data=form_data)
+            if serializers.is_valid():
+                status_code,url = serializers.create_order_items(id=id,request=request,validated_data=form_data)
+                if status_code == 200:
+                    redirect = url
+                    print(redirect)
+                    return Response(redirect,status=status.HTTP_201_CREATED)
+                else:
+                    msg = "Payment cancelled."
+                    return Response(msg,status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data = serializers.errors
+                print(data)
+                return Response(data,status=status.HTTP_400_BAD_REQUEST)
+            
+        @api_view(["POST"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def CartCheckOut(request):
+            data = {}
+            delivery_data = json.loads(request.data.get('delivery'))
+            payment_data = json.loads(request.data.get('payment'))
+            billing_data = json.loads(request.data.get('billing'))
+
+            form_data = {
+                'delivery': delivery_data,
+                'payment': payment_data,
+                'billing': billing_data,
+
+            }
+            serializers = OrderSerializer(data=form_data)
+            if serializers.is_valid():
+                status_code,url = serializers.create_cart_items(id=request.user.id,validated_data=form_data)
+                if status_code == 200:
+                    redirect = url
+                    return Response(redirect,status=status.HTTP_201_CREATED)
+                else:
+                    msg = "Payment cancelled."
+                    return Response(msg,status=status.HTTP_400_BAD_REQUEST)
+            else:
+                data = serializers.errors
+                print(data)
+                return Response(data,status=status.HTTP_400_BAD_REQUEST)
+            
+        @api_view(["GET"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
+        def deleteNow(request):
+            data = {}
+            orders = Order.objects.all()
+            orders.delete()
+            return Response(data,status=status.HTTP_200_OK)
+
+        @api_view(["POST"])
+        @authentication_classes([JWTAuthentication])
+        @permission_classes([IsAuthenticated])
         def addRating(request,id):
             data = {}
             serializers = CartItemSerializers(data=request.data)
@@ -210,23 +281,26 @@ class ordersAndCart:
                 print(data)
                 return Response(data,status=status.HTTP_400_BAD_REQUEST)
 
+
     @api_view(["GET"])
     def getCart(request):
-        data = {}
+
         session = request.query_params.get('session')
-        if session:
-            try:
-                cart = Cart.objects.get(session_id=session)
-                data = CartSerializers(cart).data
-                return Response(data, status=status.HTTP_200_OK)
-            except:
-                cart = Cart.objects.create(session_id=session)
-                data = CartSerializers(cart).data
-                return Response(data, status=status.HTTP_200_OK)
-        else:
+        if not session:
             cart = createCartForAnonymousUser(request=request)
             data = CartSerializers(cart).data
             return Response(data, status=status.HTTP_200_OK)
+        
+        try:
+            cart, created = Cart.objects.get_or_create(session_id=session)
+            data = CartSerializers(cart).data
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as error:
+            return Response(
+                    {"error": "Failed to retrieve or create cart.", "details": str(error)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+                
         
     @api_view(["GET"])
     @authentication_classes([JWTAuthentication])
@@ -256,7 +330,7 @@ class ordersAndCart:
     def getOrders(request):
         data = {}
         order = Order.objects.filter(buyer=request.user)
-        data = OrderSerializers(order).data
+        data = GetOrderSerializers(order,many=True).data
         return Response(data,status=status.HTTP_200_OK)
     
     @api_view(["GET"])
@@ -273,7 +347,7 @@ class ordersAndCart:
                         farmer_orders.append(order)
                     else:
                         pass
-        data = OrderSerializers(farmer_orders,many=True).data
+        data = OrderSerializer(farmer_orders,many=True).data
         return Response(data,status=status.HTTP_200_OK)
     
     @api_view(["GET"])
@@ -287,7 +361,7 @@ class ordersAndCart:
                 warehouse=warehouse,
                 is_paid=True
             )
-            data = OrderSerializers(order,many=True).data
+            data = OrderSerializer(order,many=True).data
             return Response(data,status=status.HTTP_200_OK)
         except:
             return Response(data="None",status=status.HTTP_404_NOT_FOUND)
