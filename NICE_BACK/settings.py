@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_q',
     'rest_framework',
     'rest_framework_simplejwt',
     'Admin',
@@ -61,6 +60,7 @@ INSTALLED_APPS = [
     'Orders',
     'Warehouser',
     'Wholesale',
+    'paypal.standard.ipn',
 ]
 
 cloudinary.config(
@@ -68,16 +68,6 @@ cloudinary.config(
   api_key = '755948595873632',  
   api_secret = 'SXz0A7wV1NkRoDpmLN0wFi5PcRM'  
 )
-
-Q_CLUSTER = {
-    'name': 'mycluster',
-    'workers': 4,
-    'timeout': 90,
-    'retry': 500,
-    'queue_limit': 50,
-    'bulk': 10,
-    'orm': 'default'
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -154,17 +144,6 @@ DATABASES = {
 #     }
 # }
 
-CACHE = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "djngo_redis.client.DefaultClass"
-        }
-
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -206,7 +185,10 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 PAYPAL_CLIENT_ID = config('PAYPAL_CLIENT_ID')
 PAYPAL_CLIENT_SECRET = config('PAYPAL_SECRET')
-PAYPAL_MODE = config('PAYPAL_MODE') 
+PAYPAL_MODE = config('PAYPAL_MODE')
+
+PAYPAL_RECEIVER_EMAIL = config('EMAIL_HOST')
+PAYPAL_TEST = False
 
 
 # Static files (CSS, JavaScript, Images)

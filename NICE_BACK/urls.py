@@ -27,4 +27,5 @@ urlpatterns = [
     path('Notifications/', include("Notifications.urls")),
     path('Payment/', include("Payment.urls")),
     path('Pricing/', include("Pricing.urls")),
+    path('paypal/', include('paypal.standard.ipn.urls')),
 ]
