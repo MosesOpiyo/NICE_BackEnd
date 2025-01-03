@@ -197,7 +197,7 @@ class UserSerializer(serializers.ModelSerializer):
     notifications = GetNotificationsSerializers(many=True,read_only=True)
     class Meta:
         model = Account
-        fields = ['email','username','phone_number','type','purchases','coupons','notifications']
+        fields = ['email','username','phone_number','type','purchases','coupons','notifications','is_wholesaler']
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -219,3 +219,13 @@ class ProfilePicSerializer(serializers.ModelSerializer):
 class PasswordRecoverySerializer(serializers.Serializer):
     message = serializers.CharField(max_length=255)
     pass_token = serializers.CharField(max_length=255)
+
+class EmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Email
+        fields = ['email']
+
+    def save(self):
+        email = Email(email = self.validated_data['email'])
+        email.save()
+        return email

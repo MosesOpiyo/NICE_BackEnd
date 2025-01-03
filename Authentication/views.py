@@ -25,9 +25,6 @@ def registration_view(request):
         data = account['response']
         return Response(data,status = status.HTTP_201_CREATED)
     else:
-        error = serializer.errors.pop('email')
-        data = f"{error[0]}"
-        print(error[0])
         return Response(data,status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['POST'])
@@ -174,6 +171,18 @@ def recoverPassword(request):
         return Response(data=str(uuid.uuid4()), status=status.HTTP_200_OK)
     except:
         return Response(data='Error occured', status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+def email_subscription(request):
+    data = {}
+    serializer = EmailSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.save()
+        data = f"Email: {email.email} has been added for subscription."
+        return Response(data, status=status.HTTP_200_OK)
+    data = "Email already Exists."
+    return Response(data,status=status.HTTP_400_BAD_REQUEST)
 
         
     

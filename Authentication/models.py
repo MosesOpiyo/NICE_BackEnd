@@ -261,3 +261,8 @@ class Profile(models.Model):
 class VerificationCode(models.Model):
     user = models.OneToOneField(Account,on_delete=models.CASCADE)
     code = models.CharField(max_length=5,default=0)
+
+
+class Email(models.Model):
+    email = models.EmailField(verbose_name="email",max_length=100,unique=True,null=True)
+    is_active = models.BooleanField(default=True)
