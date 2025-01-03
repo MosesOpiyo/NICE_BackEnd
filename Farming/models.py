@@ -26,12 +26,13 @@ class CoffeeProducts(models.Model):
     level = models.IntegerField(default=0)
     requested_warehousing = models.BooleanField(default=False)
     shipment_successful = models.BooleanField(default=False)
+    certification = models.TextField(default="")
 
     def __str__(self):
         return self.name
     
 class Ratings(models.Model):
-    user=models.OneToOneField(Buyer,on_delete=models.CASCADE)
+    user=models.ForeignKey(Buyer,on_delete=models.CASCADE)
     rating=models.IntegerField(default=0)
     comment=models.TextField(default="")
 

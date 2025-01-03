@@ -17,6 +17,7 @@ class ProductsSerializers(serializers.ModelSerializer):
         fields = '__all__'
     def save(self,request):
         farmer = Account.objects.get(email=self.validated_data['email'])
+        profile = FarmerProfile.objects.get(farmer=farmer)
         product = CoffeeProducts(name=self.validated_data['name'],
                                  quantity=self.validated_data['quantity'],
                                  date=datetime.now(),
@@ -36,7 +37,8 @@ class ProductsSerializers(serializers.ModelSerializer):
                                  acidity=self.validated_data['acidity'],
                                  level=self.validated_data['level'],
                                  requested_warehousing=True,
-                                 shipment_successful=False
+                                 shipment_successful=False,
+                                 certification=profile.certification_type
                                  )
         product.name = product.name.upper()
         product.save()
@@ -69,7 +71,8 @@ class GetProductsForShopSerializers(serializers.ModelSerializer):
             'name',
             'price',
             'processing',
-            'producer'
+            'producer',
+            'certification'
         ]
 
 class RatingSerializers(serializers.ModelSerializer):
