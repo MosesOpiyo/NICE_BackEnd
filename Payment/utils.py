@@ -1,11 +1,44 @@
 import requests
 import json
-from decouple import config
-from paypalrestsdk import Payment
-
 from .models import Subscription
+from paypalrestsdk import Payment
+from decouple import config
+from paypal.standard.ipn.signals import valid_ipn_received
+from django.dispatch import receiver
 
-def make_paypal_payment(receipt):
+
+@receiver(valid_ipn_received)
+def payment_notification(sender, **kwargs):
+    ipn_obj = sender
+    if ipn_obj.payment_status == "Completed":
+        # Process the payment
+        # For example, mark an order as paid
+        print("Payment received for:", ipn_obj.invoice)
+
+# def make_paypal_payment(request,order):
+#         paypal_base_url = (
+#             "https://www.sandbox.paypal.com/cgi-bin/webscr"
+#             if settings.PAYPAL_TEST
+#             else "https://www.paypal.com/cgi-bin/webscr"
+#         )
+
+#         paypal_dict = {
+#             "cmd": "_xclick",
+#             "business": settings.EMAIL_HOST,
+#             "amount": order.total,
+#             "item_name": "Sample Item",
+#             "invoice": order.id,
+#             "notify_url": request.build_absolute_uri('/paypal/ipn/'),  # IPN callback
+#             "return_url": "https://nicedirectcoffee.com/success/",        # Redirect after success
+#             "cancel_return": "https://nicedirectcoffee.com/cancel/",      # Redirect after cancel
+#         }
+#         form = PayPalPaymentsForm(initial=paypal_dict)
+#         query_string = urlencode(paypal_dict)
+#         paypal_url = f"{paypal_base_url}?{query_string}"
+#         return 200,paypal_url
+
+
+def make_paypal_payment(order):
     # Set up PayPal API credentials
     client_id = config("PAYPAL_CLIENT_ID")
     secret = config("PAYPAL_SECRET")
@@ -35,7 +68,7 @@ def make_paypal_payment(receipt):
         'intent': 'sale',
         'payer': {'payment_method': 'paypal'},
         'transactions': [{
-            'amount': {'total': str(receipt.amount), 'currency': currency},
+            'amount': {'total': str(order.total), 'currency': currency},
             'description': 'Vulnvision scan & protect '
         }],
         'redirect_urls': {
@@ -57,7 +90,7 @@ def make_paypal_payment(receipt):
     payment_id = payment_response.json()['id']
     approval_url = next(link['href'] for link in payment_response.json()['links'] if link['rel'] == 'approval_url')
 
-    return True,payment_id, approval_url
+    return 200, approval_url
 
 def verify_paypal_payment(payment_id):
     # Set up PayPal API credentials

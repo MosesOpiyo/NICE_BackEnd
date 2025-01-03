@@ -9,7 +9,6 @@ from rest_framework import status as Status
 import time
 from Authentication.models import Account
 from Orders.models import Order,Cart
-from Orders.serializers import OrderSerializers
 from .models import Receipt
 from .serializers import AddressSerializers,ReceiptSerializers,SubscriptionSerializer
 from decouple import config
@@ -66,7 +65,6 @@ class ProcessingPayment:
             payment_status = verify_paypal_payment(payment_id=receipt.payment_id)
             if payment_status:
                 receipt.paid = receipt.order.is_paid = True
-                OrderSerializers.create_order(user=request.user)
                 return Response(data="payment successful", status=Status.HTTP_202_ACCEPTED)
             else:
                 attempts += 1
