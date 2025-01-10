@@ -3,7 +3,7 @@ name: Deploy Django to cPanel via FTP
 on:
   push:
     branches:
-      - ft-development
+      - master
 
 jobs:
   deploy:
