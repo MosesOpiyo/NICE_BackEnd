@@ -3,17 +3,15 @@ import json
 from .models import Subscription
 from paypalrestsdk import Payment
 from decouple import config
-from paypal.standard.ipn.signals import valid_ipn_received
-from django.dispatch import receiver
 
 
-@receiver(valid_ipn_received)
-def payment_notification(sender, **kwargs):
-    ipn_obj = sender
-    if ipn_obj.payment_status == "Completed":
-        # Process the payment
-        # For example, mark an order as paid
-        print("Payment received for:", ipn_obj.invoice)
+# @receiver(valid_ipn_received)
+# def payment_notification(sender, **kwargs):
+#     ipn_obj = sender
+#     if ipn_obj.payment_status == "Completed":
+#         # Process the payment
+#         # For example, mark an order as paid
+#         print("Payment received for:", ipn_obj.invoice)
 
 # def make_paypal_payment(request,order):
 #         paypal_base_url = (

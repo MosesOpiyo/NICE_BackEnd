@@ -110,6 +110,7 @@ class ProductOrder(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
+    order = models.ForeignKey('Order', related_name='product_orders', on_delete=models.CASCADE,null=True)
 
     def clean(self):
         """Ensure content_type only points to CartItem or OrderItem."""
@@ -119,7 +120,6 @@ class ProductOrder(models.Model):
 
 class Order(models.Model):
     buyer = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
-    items = GenericRelation(ProductOrder)
     total = models.FloatField(default=0)
     delivery = models.ForeignKey(Delivery, on_delete=models.CASCADE,null=True)
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE,null=True)
@@ -130,5 +130,6 @@ class Order(models.Model):
     is_fulfilled = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Order #{self.id} - {self.buyer.username}"
+        return f"Order #{self.id}"
+
     

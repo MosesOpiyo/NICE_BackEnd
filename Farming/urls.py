@@ -7,6 +7,7 @@ urlpatterns = [
     path("FarmerProduct",Farming.getProducts,name="products"),
     path("FarmerProfile",Farming.getProfile,name="profile"),
     path("FarmerProfileDetails",Farming.newProfileDetails,name="profile_details"),
+    path("FarmerProfileDetailsBulk",Farming.BulkFarmerProfile,name="profile_details_bulk"),
     path("FarmerRequestedProduct",Farming.getRequestedProducts,name="requested_products"),
     path("ShippingProduct",Farming.getShippingProducts,name="shipping_products"),
     path("getProducts",Processed.getProducts,name="products"),

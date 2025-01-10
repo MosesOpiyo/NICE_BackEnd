@@ -1,4 +1,6 @@
 import binascii,os
+import csv
+from io import TextIOWrapper
 from rest_framework import serializers
 from .models import *
 from Authentication.models import Account
@@ -88,6 +90,76 @@ class RatingSerializers(serializers.ModelSerializer):
         )
         rating.save()
         return rating
+    
+class ExcelProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = FarmerProfile
+        fields = "__all__"
+        # fields = ['wet_mill_name',
+        #           'society_name',
+        #           'factory_chairman',
+        #           'factory_manager',
+        #           'country',
+        #           'county',
+        #           'no_of_farmers',
+        #           'male_farmers',
+        #           'female_farmers',
+        #           'total_acreage',
+        #           'no_of_trees',
+        #           'altitude',
+        #           'harvest_season',
+        #           'annual_rainfall',
+        #           'annual_temp',
+        #           'varieties',
+        #           'farming_method',
+        #           'certification_type',
+        #           'cherry_production_2019_to_2020',
+        #           'cherry_production_2020_to_2021',
+        #           'cherry_production_2021_to_2022',
+        #           'soil_type',
+        #           'processing_method',
+        #           'drying_method',
+        #           'cupping_notes',
+        #           'availability',
+        #           'grower_history'
+        #           ]
+
+    def save(self):
+        # farmer = Farmer.objects.get(
+        #     email = request.user.email,
+        # )
+        # password = binascii.hexlify(os.urandom(10)).decode('utf-8')
+        # farmer.set_password(password)
+        profile = FarmerProfile(
+            county=self.validated_data['COUNTY'],
+            country=self.validated_data['COUNTRY'],
+            wet_mill_name=self.validated_data['WETMILL NAME'],
+            society_name=self.validated_data['SOCIETY NAME'],
+            factory_chairman=self.validated_data['FACTORY CHAIRMAN'],
+            factory_manager=self.validated_data['FACTORY MANANGER'],
+            no_of_farmers=self.validated_data['NO.OF FARMERS'],
+            male_farmers=self.validated_data['MALE FARMERS'],
+            female_farmers=self.validated_data['FEMALE FARMERS'],
+            total_acreage=self.validated_data['TOTAL ACREAGE'],
+            no_of_trees=self.validated_data['NO.OF TREES'],
+            altitude=self.validated_data['ALTITUDE'],
+            harvest_season=self.validated_data['HARVEST SEASON'],
+            annual_rainfall=self.validated_data['ANNUAL RAINFALL AMT'],
+            annual_temp=self.validated_data['ANNUAL TEMP AMT'],
+            varieties=self.validated_data['COFFEE VARIETIES'],
+            farming_method=self.validated_data['FARMING METHOD'],
+            certification_type=self.validated_data['CERTIFICATION TYPE'],
+            cherry_production_2019_to_2020=self.validated_data['CHERRY CHERRY PRODUCTION 2019-2020'],
+            cherry_production_2020_to_2021=self.validated_data['CHERRY CHERRY PRODUCTION 2020-2021'],
+            cherry_production_2021_to_2022=self.validated_data['CHERRY PRODUCTION 2021-2022'],
+            soil_type=self.validated_data['SOIL TYPE'],
+            processing_method=self.validated_data['PROCESSIPROCESSING METHODS'],
+            drying_method=self.validated_data['DRYING METHOD'],
+            cupping_notes=self.validated_data['CUPPING NOTES'],
+            availability=self.validated_data['AVAILABILITY'],
+            grower_history=self.validated_data["GROWER'S HISTORY"]
+        )
+        return profile
     
 class ProfileSerializers(serializers.ModelSerializer):
     farmer = UserSerializer(read_only=True)

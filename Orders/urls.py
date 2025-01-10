@@ -21,7 +21,7 @@ urlpatterns = [
     path("RemoveCarts",ordersAndCart.DeleteCart,name="remove"),
     path("Cart",ordersAndCart.getCart,name="cart"),
     path("AuthenticatedCart",ordersAndCart.getAuthenticatedCart,name="cart"),
-    path("Orders/q=orders",ordersAndCart.getOrders,name="orders"),
+    path("Orders",ordersAndCart.getOrders,name="orders"),
     path("FarmerOrders",ordersAndCart.getFarmerOrders,name="orders"),
     path("WarehouseOrders",ordersAndCart.getWarehouseOrders,name="orders"),
     path("Products",Products.getProducts,name="products"),

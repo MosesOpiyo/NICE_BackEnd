@@ -329,7 +329,7 @@ class ordersAndCart:
     @permission_classes([IsAuthenticated])
     def getOrders(request):
         data = {}
-        order = Order.objects.filter(buyer=request.user)
+        order = Order.objects.all()
         data = GetOrderSerializers(order,many=True).data
         return Response(data,status=status.HTTP_200_OK)
     

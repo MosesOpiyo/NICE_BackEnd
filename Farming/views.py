@@ -72,13 +72,47 @@ class Farming:
     @permission_classes([IsAuthenticated])
     def getProfile(request):
         data = {}
+        profile = FarmerProfile.objects.all()
+        data =  ExcelProfileSerializers(profile,many=True).data
+        return Response(data,status = status.HTTP_200_OK)
+        
+    @api_view(["POST"])
+    @authentication_classes([JWTAuthentication])
+    @permission_classes([IsAuthenticated])
+    def BulkFarmerProfile(request):
+        data = {}
+        incoming_data_list = request.data  # Expecting a list of dictionaries
+        created_profiles = []
+
+        if not isinstance(incoming_data_list, list):
+            return Response(
+                {"error": "Expected a list of farmer data objects."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
-            profile = FarmerProfile.objects.get(farmer=request.user)
-            data =  GetProfileSerializers(profile).data
-            return Response(data,status = status.HTTP_200_OK)
-        except:
-            data = ""
-            return Response(data,status = status.HTTP_200_OK)
+            for incoming_data in incoming_data_list:
+                # Clean and map data for each farmer profile
+                mapped_data = {}
+                for key, model_field in field_mapping.items():
+                    if key in incoming_data:
+                        value = incoming_data[key]
+                        if model_field in ["annual_rainfall", "annual_temp", "altitude"]:
+                            value = value.replace("mm", "").replace("?c", "").replace(",", "").strip() if isinstance(value, str) else value
+
+                        mapped_data[model_field] = value or ""
+                mapped_data["farm_area"] = mapped_data.get("total_acreage", 0.0)
+                farmer_profile = FarmerProfile.objects.create(**mapped_data)
+                created_profiles.append(farmer_profile.id)
+
+            return Response(
+                {"message": f"{len(created_profiles)} farmer profiles created successfully!", "created_ids": created_profiles},
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            print(e)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     @api_view(['PUT'])
     @authentication_classes([JWTAuthentication])

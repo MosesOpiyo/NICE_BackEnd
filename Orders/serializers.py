@@ -5,6 +5,7 @@ from Authentication.serializers import UserSerializer
 from Farming.models import ProcessedProducts
 from Farming.serializers import GetProcessedProductsSerializers
 from Notifications.models import Notification
+from django.db import transaction
 
 from Authentication.models import Account
 
@@ -214,38 +215,40 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ['delivery','payment','billing']
     
     def create_cart_items(self,id, validated_data):
-        """
-        Custom create method to handle nested serializers.
-        """
-        delivery_data = validated_data.pop('delivery')
-        payment_data = validated_data.pop('payment')
-        billing_data = validated_data.pop('billing')
+        with transaction.atomic():
+            """
+            Custom create method to handle nested serializers.
+            """
+            delivery_data = validated_data.pop('delivery')
+            payment_data = validated_data.pop('payment')
+            billing_data = validated_data.pop('billing')
 
-        user = Account.objects.get(id=id)
-        cart = Cart.objects.get(buyer=user)
-        delivery = Delivery.objects.create(**delivery_data)
-        payment = Payment.objects.create(**payment_data)
-        billing = Billing.objects.create(**billing_data)
+            user = Account.objects.get(id=id)
+            cart = Cart.objects.get(buyer=user)
+            delivery = Delivery.objects.create(**delivery_data)
+            payment = Payment.objects.create(**payment_data)
+            billing = Billing.objects.create(**billing_data)
 
-        order = Order.objects.create(delivery=delivery,
-                      payment=payment, 
-                      billing=billing, 
-                      )
-        total = 0
-        for product in cart.products.all():
-            content_type = ContentType.objects.get_for_model(product)
-            product_created = ProductOrder.objects.create(
-                content_type=content_type,
-                object_id=product.id,
-                content_object=content_type.get_object_for_this_type(id=product.id) 
-            )
-            total += product.price
-        order.items.add(product_created)
-        order.total = total
-        order.save()
-        if order.payment.payment_method == "paypal":
-           status,paypal_url = make_paypal_payment(order=order)
-        return status,paypal_url
+            order = Order.objects.create(delivery=delivery,
+                        payment=payment, 
+                        billing=billing, 
+                        buyer = user
+                        )
+            total = 0
+            for product in cart.products.all():
+                content_type = ContentType.objects.get_for_model(product)
+                product_created = ProductOrder.objects.create(
+                    content_type=content_type,
+                    object_id=product.id,
+                    content_object=content_type.get_object_for_this_type(id=product.id),
+                    order = order
+                )
+                total += product.price
+            order.total = total
+            order.save()
+            if order.payment.payment_method == "paypal":
+                status,paypal_url = make_paypal_payment(order=order)
+            return status,paypal_url
 
     def create_order_items(self, request, id, validated_data):
         """
@@ -311,9 +314,10 @@ class GetOrderSerializers(serializers.ModelSerializer):
         """
         Fetch and serialize related ProductOrder objects for this order.
         """
-        order_items = ContentType.objects.get_for_model(OrderItem)
-        cart_items = ContentType.objects.get_for_model(CartItem)
-        related_items = ProductOrder.objects.filter(object_id=obj.id, content_type__in=[order_items,cart_items])
+        print(obj)
+        order = Order.objects.get(id=obj.id)
+        related_items = ProductOrder.objects.filter(order=obj)
+        print([related_items])
         return ProductOrderSerializers(related_items, many=True).data
     
     
